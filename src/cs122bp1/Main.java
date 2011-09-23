@@ -4,13 +4,12 @@
  */
 package cs122bp1;
 
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+//import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.*;                              // Enable SQL processing
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  *
@@ -34,36 +33,41 @@ public class Main {
 
     }
 
-    private static void getMetadata() throws SQLException {
-        boolean step = false;
-        // Create an execute an SQL statement to select all of table"Stars" records
-        Statement select = connection.createStatement();
-        Statement tableQuery = connection.createStatement();
-        ResultSet tableList = tableQuery.executeQuery("SHOW TABLES");
-
-        System.out.println("\n\n\n______________________________________");
-
-
-        while (tableList.next()) {
-            if (step) {
-                pause();
-            } else {
-                step = true;
+    private static void getMetadata() {
+        try {
+            boolean step = false;
+            // Create an execute an SQL statement to select all of table"Stars" records
+            Statement select = connection.createStatement();
+            Statement tableQuery = connection.createStatement();
+            ResultSet tableList = tableQuery.executeQuery("SHOW TABLES");
+            System.out.println("\n\n\n______________________________________");
+            while (tableList.next()) {
+                if (step) {
+                    pause();
+                } else {
+                    step = true;
+                }
+                String table = tableList.getString(1);
+                System.out.println("\nTABLE: " + table);
+                ResultSet result = select.executeQuery("Select * from " + table);
+                // Get metatdata from stars; print # of attributes in table
+                //System.out.println("The results of the query");
+                ResultSetMetaData metadata = result.getMetaData();
+                System.out.println("There are " + metadata.getColumnCount() + " columns");
+                // Print type of each attribute
+                for (int i = 1; i <= metadata.getColumnCount(); i++) {
+                    System.out.println("(" + i + ") " + metadata.getColumnName(i) + " :: " + metadata.getColumnTypeName(i));
+                }
+                System.out.println("\n______________________________________");
             }
-            String table = tableList.getString(1);
-            System.out.println("\nTABLE: " + table);
-
-            ResultSet result = select.executeQuery("Select * from " + table);
-            // Get metatdata from stars; print # of attributes in table
-            //System.out.println("The results of the query");
-            ResultSetMetaData metadata = result.getMetaData();
-            System.out.println("There are " + metadata.getColumnCount() + " columns");
-            // Print type of each attribute
-            for (int i = 1; i <= metadata.getColumnCount(); i++) {
-                System.out.println("(" + i + ") " + metadata.getColumnName(i) + " :: " + metadata.getColumnTypeName(i));
-            }
-            System.out.println("\n______________________________________");
-
+        } catch (SQLException ex) {
+            System.err.println("----SQLException----");
+            System.err.println(
+                    "SQLState:  " + ex.getSQLState());
+            System.err.println(
+                    "Message:  " + ex.getMessage());
+            System.err.println(
+                    "Vendor:  " + ex.getErrorCode());
         }
     }
 
@@ -90,7 +94,13 @@ public class Main {
             printStars(result);
 
         } catch (SQLException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("----SQLException----");
+            System.err.println(
+                    "SQLState:  " + ex.getSQLState());
+            System.err.println(
+                    "Message:  " + ex.getMessage());
+            System.err.println(
+                    "Vendor:  " + ex.getErrorCode());
         }
     }
 
@@ -116,8 +126,14 @@ public class Main {
             System.out.println("\nThe results of the query\n");
             printStars(result);
 
-        } catch (SQLException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }  catch (SQLException ex) {
+            System.err.println("----SQLException----");
+            System.err.println(
+                    "SQLState:  " + ex.getSQLState());
+            System.err.println(
+                    "Message:  " + ex.getMessage());
+            System.err.println(
+                    "Vendor:  " + ex.getErrorCode());
         }
     }
 
@@ -179,43 +195,49 @@ public class Main {
             }
 
 
-            try {
-                switch (menuChoice) {
-                    case 1:
-                        searchNames();
-                        pause();
-                        break;
-                    case 2:
-                        searchIDs();
-                        pause();
-                        break;
-                    case 3:
-                        addStarMenu();
-                        break;
-                    case 4:
-                        addCustomerMenu();
-                        pause();
-                        break;
-                    case 5:
-                        deleteCustomerMenu();
-                        pause();
-                        break;
-                    case 6:
-                        getMetadata();
-                        pause();
-                        break;
-                    case 7:
-                        openQueryMenu();
-                        pause();
-                        break;
-                    case 8:
-                        return;
-                    default:
-                        break;
-                }
-            } catch (SQLException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+//            try {
+            switch (menuChoice) {
+                case 1:
+                    searchNames();
+                    pause();
+                    break;
+                case 2:
+                    searchIDs();
+                    pause();
+                    break;
+                case 3:
+                    addStarMenu();
+                    break;
+                case 4:
+                    addCustomerMenu();
+                    pause();
+                    break;
+                case 5:
+                    deleteCustomerMenu();
+                    pause();
+                    break;
+                case 6:
+                    getMetadata();
+                    pause();
+                    break;
+                case 7:
+                    openQueryMenu();
+                    pause();
+                    break;
+                case 8:
+                    return;
+                default:
+                    break;
             }
+//            } catch (SQLException ex) {
+//                System.err.println("----SQLException----");
+//                System.err.println(
+//                        "SQLState:  " + ex.getSQLState());
+//                System.err.println(
+//                        "Message:  " + ex.getMessage());
+//                System.err.println(
+//                        "Vendor:  " + ex.getErrorCode());
+//            }
         }
     }
 
@@ -225,7 +247,7 @@ public class Main {
         try {
             int ch = stdin.read();
         } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
         }
 
     }
@@ -242,7 +264,13 @@ public class Main {
             //System.out.println("retID = " + retID);
             return retID;
         } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
+            System.err.println("----SQLException----");
+            System.err.println(
+                    "SQLState:  " + ex.getSQLState());
+            System.err.println(
+                    "Message:  " + ex.getMessage());
+            System.err.println(
+                    "Vendor:  " + ex.getErrorCode());
         }
         return 0;
     }
