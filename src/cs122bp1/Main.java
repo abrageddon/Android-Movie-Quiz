@@ -32,7 +32,7 @@ public class Main {
 
     }
 
-    private static void getMetadata() throws SQLException {
+    private static void getMetadata() {
         boolean step = false;
         try {
             // SQL statement to select all tables
@@ -46,6 +46,7 @@ public class Main {
             while (tableList.next()) {
                 if (step) {
                     pause(); // Pause before each table; except the first
+                    System.out.println("______________________________________");
                 } else {
                     step = true;
                 }
@@ -63,14 +64,16 @@ public class Main {
                 System.out.println("\n______________________________________");
             }
         } catch (SQLException ex) {
-            System.err.println("----SQLException----");
-            System.err.println(
-                    "SQLState:  " + ex.getSQLState());
-            System.err.println(
-                    "Message:  " + ex.getMessage());
-            System.err.println(
-                    "Vendor:  " + ex.getErrorCode());
+            printSQLError(ex);
         }
+    }
+
+    private static void printSQLError(SQLException ex) {
+        //TODO add clean mySQL error messages
+        System.err.println("----SQLException----");
+        System.err.println("SQLState:  " + ex.getSQLState());
+        System.err.println("Message:  " + ex.getMessage());
+        System.err.println("Vendor Error Code:  " + ex.getErrorCode());
     }
 
     private static void searchStarNames() {
@@ -97,13 +100,7 @@ public class Main {
             printStars(result);
 
         } catch (SQLException ex) {
-            System.err.println("----SQLException----");
-            System.err.println(
-                    "SQLState:  " + ex.getSQLState());
-            System.err.println(
-                    "Message:  " + ex.getMessage());
-            System.err.println(
-                    "Vendor:  " + ex.getErrorCode());
+            printSQLError(ex);
         }
     }
 
@@ -130,13 +127,7 @@ public class Main {
             printStars(result);
 
         } catch (SQLException ex) {
-            System.err.println("----SQLException----");
-            System.err.println(
-                    "SQLState:  " + ex.getSQLState());
-            System.err.println(
-                    "Message:  " + ex.getMessage());
-            System.err.println(
-                    "Vendor:  " + ex.getErrorCode());
+            printSQLError(ex);
         }
     }
 
@@ -199,51 +190,40 @@ public class Main {
                 System.err.println("Not a valid number: " + readLine);
             }
 
-            try {
-                switch (menuChoice) {
-                    case 1:
-                        searchStarNames();
-                        pause();
-                        break;
-                    case 2:
-                        searchStarIDs();
-                        pause();
-                        break;
-                    case 3:
-                        addStarMenu();
-                        break;
-                    case 4:
-                        //TODO addCustomerMenu();
-                        addCustomerMenu();
-                        pause();
-                        break;
-                    case 5:
-                        //TODO deleteCustomerMenu();
-                        deleteCustomerMenu();
-                        pause();
-                        break;
-                    case 6:
-                        getMetadata();
-                        pause();
-                        break;
-                    case 7:
-                        //TODO openQueryMenu();
-                        openQueryMenu();
-                        pause();
-                        break;
-                    case 8:
-                        return;
-                    default:
-                        break;
-                }
-            } catch (SQLException ex) {
-                System.err.println("----SQLException----");
-                System.err.println(
-                        "SQLState:  " + ex.getSQLState());
-                System.err.println(
-                        "Message:  " + ex.getMessage());
-                System.err.println(
-                        "Vendor:  " + ex.getErrorCode());
+            switch (menuChoice) {
+                case 1:
+                    searchStarNames();
+                    pause();
+                    break;
+                case 2:
+                    searchStarIDs();
+                    pause();
+                    break;
+                case 3:
+                    addStarMenu();
+                    break;
+                case 4:
+                    //TODO addCustomerMenu();
+                    addCustomerMenu();
+                    break;
+                case 5:
+                    //TODO deleteCustomerMenu();
+                    deleteCustomerMenu();
+                    pause();
+                    break;
+                case 6:
+                    getMetadata();
+                    pause();
+                    break;
+                case 7:
+                    //TODO openQueryMenu();
+                    openQueryMenu();
+                    pause();
+                    break;
+                case 8:
+                    return;
+                default:
+                    break;
             }
         }
     }
@@ -270,14 +250,7 @@ public class Main {
                     + imgURL + "');");
             return retID;
         } catch (SQLException ex) {
-            //TODO add mySQL error messages
-            System.err.println("----SQLException----");
-            System.err.println(
-                    "SQLState:  " + ex.getSQLState());
-            System.err.println(
-                    "Message:  " + ex.getMessage());
-            System.err.println(
-                    "Vendor:  " + ex.getErrorCode());
+            printSQLError(ex);
         }
         return 0;
     }
@@ -319,23 +292,30 @@ public class Main {
 
                 switch (menuChoice) {
                     case 1:
-                        //TODO add star ID editable?
+                        //TODO star ID editable?
                         System.out.print("Enter ID:");
                         readLine = br.readLine();
                         id = Integer.parseInt(readLine);
                         break;
                     case 2:
-                        System.out.print("Enter First Name:");
-                        firstName = br.readLine();
-                        System.out.print("Enter Last Name:");
-                        lastName = br.readLine();
+                        while (firstName.isEmpty()) {
+                            System.out.print("Enter First Name:");
+                            firstName = br.readLine();
+                        }
+                        while (lastName.isEmpty()) {
+                            System.out.print("Enter Last Name:");
+                            lastName = br.readLine();
+                        }
                         break;
                     case 3:
-                        System.out.print("Enter Name:");
+                        while (lastName.isEmpty()) {
+                            System.out.print("Enter Name:");
+                            lastName = br.readLine();
+                        }
                         firstName = "";
-                        lastName = br.readLine();
                         break;
                     case 4:
+                        //TODO must match format YYYY/MM/DD
                         System.out.print("Enter Date of Birth (YYYY/MM/DD):");
                         dob = br.readLine();
                         break;
@@ -345,6 +325,8 @@ public class Main {
                         break;
                     case 6:
                         int added = 0;
+
+                        //TODO check that first and last name exisit and DOB is in proper format
 
                         added = addStar(id, firstName, lastName, dob, imageURL);
                         if (added != 0) {
@@ -385,12 +367,147 @@ public class Main {
         / a single name, add it as his last_name and and assign an empty string
         / ("") to first_name.
          */
-        System.out.println("Not yet implemented");
+        int id = 0;
+        String firstName = "";
+        String lastName = "";
+        int cc_id = 0;
+        String address = "";
+        String email = "";
+        String password = "";
+
+        while (true) {
+            System.out.print("\n\n\n\n=== Add Customer Menu ===\n"
+                    + "\n"
+                    + "ID (0=Auto): " + id + "\n"
+                    + "First Name : " + firstName + "\n"
+                    + "Last Name  : " + lastName + "\n"
+                    + "Credit Card: " + cc_id + "\n"
+                    + "Address    : " + address + "\n"
+                    + "E-Mail     : " + email + "\n"
+                    + "Password   : " + password + "\n"
+                    + "\n"
+                    + "1) Set Customer ID\n"
+                    + "2) Set First and Last Name\n"
+                    + "3) Set Single Name\n"
+                    + "4) Set Credit Card Number\n"
+                    + "5) Set Address\n"
+                    + "6) Set Email\n"
+                    + "7) Set Password\n"
+                    + "8) Add Customer\n"
+                    + "0) Cancel\n"
+                    + "______________________________________\n"
+                    + ":");
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            String readLine = null;
+            int menuChoice = -1;
+
+            try {
+                readLine = br.readLine();
+                menuChoice = Integer.parseInt(readLine);
+
+
+                switch (menuChoice) {
+                    case 1:
+                        //TODO customer ID editable?
+                        System.out.print("Enter ID:");
+                        readLine = br.readLine();
+                        id = Integer.parseInt(readLine);
+                        break;
+                    case 2:
+                        while (firstName.isEmpty()) {
+                            System.out.print("Enter First Name:");
+                            firstName = br.readLine();
+                        }
+                        while (lastName.isEmpty()) {
+                            System.out.print("Enter Last Name:");
+                            lastName = br.readLine();
+                        }
+                        break;
+                    case 3:
+                        while (lastName.isEmpty()) {
+                            System.out.print("Enter Name:");
+                            lastName = br.readLine();
+                        }
+                        firstName = "";
+                        break;
+                    case 4:
+                        //TODO must be number
+                        System.out.print("Enter Credit Card Number:");
+                        cc_id = Integer.parseInt(br.readLine());
+                        break;
+                    case 5:
+                        System.out.print("Enter Address:");
+                        address = br.readLine();
+                        break;
+                    case 6:
+                        System.out.print("Enter Email:");
+                        email = br.readLine();
+                        break;
+                    case 7:
+                        System.out.print("Enter Password:");
+                        password = br.readLine();
+                        break;
+                    case 8:
+                        int added = 0;
+
+                        //TODO validate all fields
+                        //TODO check cc_id against cc database and validate name
+                        //Vendor Error Code:  1452; i think means the cc_id is not in table:creditcards
+
+                        added = addCustomer(id, firstName, lastName, cc_id, address, email, password);
+                        if (added != 0) {
+                            System.out.println("______________________________________\n"
+                                    + firstName + " " + lastName + " successfully added\n"
+                                    + "______________________________________");
+                            pause();
+                        } else {
+                            System.out.println("______________________________________\n"
+                                    + firstName + " " + lastName + " NOT added\n"
+                                    + "______________________________________");
+                            pause();
+                            break;
+                        }
+                        return;
+                    case 0:
+                        return;
+                    default:
+                        break;
+                }
+
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
+            } catch (NumberFormatException ex) {
+                System.err.println("Not a valid number: " + readLine);
+//            } catch (MySQLIntegrityConstraintViolationException e){}
+            }
+
+
+
+        }
+    }
+
+    private static int addCustomer(int id, String firstName, String lastName, int cc_id, String address, String email, String password) {
+        try {
+            Statement update = connection.createStatement();
+            int retID = update.executeUpdate("INSERT INTO customers VALUES("
+                    + id + ", '"
+                    + firstName + "', '"
+                    + lastName + "', '"
+                    + cc_id + "', '"
+                    + address + "','"
+                    + email + "','"
+                    + password + "');");
+            return retID;
+        } catch (SQLException ex) {
+            printSQLError(ex);
+        }
+        return 0;
     }
 
     private static void deleteCustomerMenu() {
         //TODO Delete a customer from the database. 
-        System.out.println("Not yet implemented");
+        System.out.println("=== Not yet implemented ===");
     }
 
     private static void openQueryMenu() {
@@ -401,6 +518,6 @@ public class Main {
         of the query. For instance, for an UPDATE query, show the user how many
         records have been successfully changed.
          */
-        System.out.println("Not yet implemented");
+        System.out.println("=== Not yet implemented ===");
     }
 }
