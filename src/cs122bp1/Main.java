@@ -24,147 +24,19 @@ public class Main {
         // Incorporate mySQL driver
         Class.forName("com.mysql.jdbc.Driver").newInstance();
 
-        // Connect to the test database
+        /*When this program is run, the user is asked for the the user name
+         and the user password (the database user login info not the password
+         in the above schema) . If all is well, the employee is granted access
+         (and a message to that effect appears on the screen); if access is not
+         allowed, it says why (e.g., the database is not present, the password
+         is wrong). Allow a way for the employee to exit easily. */
         //TODO ask for login name and password
+        
+        // Connect to the test database
         connection = DriverManager.getConnection("jdbc:mysql:///moviedb", "cs122b", "cs122b");
 
         mainMenu(); //TODO add login loop
 
-    }
-
-    private static void getMetadata() {
-        boolean step = false;
-        try {
-            // SQL statement to select all tables
-            Statement select = connection.createStatement();
-            Statement tableQuery = connection.createStatement();
-            ResultSet tableList = tableQuery.executeQuery("SHOW TABLES");
-
-            System.out.println("\n\n\n______________________________________");
-
-
-            while (tableList.next()) {
-                if (step) {
-                    pause(); // Pause before each table; except the first
-                    System.out.println("______________________________________");
-                } else {
-                    step = true;
-                }
-                String table = tableList.getString(1);
-                System.out.println("\nTABLE: " + table);
-
-                ResultSet result = select.executeQuery("Select * from " + table);
-                // Get metatdata from stars; print # of attributes in table
-                ResultSetMetaData metadata = result.getMetaData();
-                System.out.println("\nThere are " + metadata.getColumnCount() + " columns");
-                // Print type of each attribute
-                for (int i = 1; i <= metadata.getColumnCount(); i++) {
-                    System.out.println("(" + i + ") " + metadata.getColumnName(i) + " :: " + metadata.getColumnTypeName(i));
-                }
-                System.out.println("\n______________________________________");
-            }
-        } catch (SQLException ex) {
-            printSQLError(ex);
-        }
-    }
-
-    private static void printSQLError(SQLException ex) {
-        //TODO add clean mySQL error messages
-        // List of error codes:
-        // http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html
-        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
-        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html
-        System.err.println("----SQLException----");
-        System.err.println("SQLState:  " + ex.getSQLState());
-        System.err.println("Message:  " + ex.getMessage());
-        System.err.println("Vendor Error Code:  " + ex.getErrorCode());
-    }
-
-    private static void searchStarNames() {
-        //TODO add search for first or last name exclusive?
-
-        System.out.print("\n\n\nEnter search term: ");
-
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String readLine = null;
-
-        try {
-            readLine = br.readLine();
-        } catch (IOException ioe) {
-            System.out.println("Invalid Input!");
-        } catch (NumberFormatException ex) {
-            System.err.println("Not a valid number: " + readLine);
-        }
-
-        ResultSet result;
-        try {
-
-            result = queryStarNames(readLine);
-            System.out.println("\nThe results of the query\n");
-            printStars(result);
-
-        } catch (SQLException ex) {
-            printSQLError(ex);
-        }
-    }
-
-    private static void searchStarIDs() {
-
-        System.out.print("\n\n\nEnter star ID: ");
-
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String readLine = null;
-
-        try {
-            readLine = br.readLine();
-        } catch (IOException ioe) {
-            System.out.println("Invalid Input!");
-        } catch (NumberFormatException ex) {
-            System.err.println("Not a valid number: " + readLine);
-        }
-
-        ResultSet result;
-        try {
-
-            result = queryStarID(readLine);
-            System.out.println("\nThe results of the query\n");
-            printStars(result);
-
-        } catch (SQLException ex) {
-            printSQLError(ex);
-        }
-    }
-
-    private static void printStars(ResultSet result) throws SQLException {
-        // print table's contents, field by field
-        int count = 0;
-        while (result.next()) {
-            System.out.println("ID = " + result.getInt(1));
-            System.out.println("Name = " + result.getString(2) + " " + result.getString(3));
-            System.out.println("DOB = " + result.getString(4));
-            System.out.println("photoURL = " + result.getString(5));
-            if (++count % 3 == 0) {
-                System.out.println("______________________________________");
-                pause();
-                System.out.println("______________________________________\n");
-            } else {
-                System.out.println();
-            }
-        }
-    }
-
-    private static ResultSet queryStarNames(String readLine) throws SQLException {
-        //Search by name, returns if found in first or last name inclusive
-        Statement select = connection.createStatement();
-        ResultSet result = select.executeQuery("Select * from stars WHERE (first_name = '" + readLine + "' OR last_name = '" + readLine + "' )");
-        return result;
-    }
-
-    private static ResultSet queryStarID(String readLine) throws SQLException {
-        //Search by star ID
-        Statement select = connection.createStatement();
-        ResultSet result = select.executeQuery("Select * from stars WHERE (id = '" + readLine + "' )");
-        return result;
     }
 
     private static void mainMenu() {
@@ -191,7 +63,7 @@ public class Main {
             } catch (IOException ioe) {
                 System.out.println("Invalid Input!");
             } catch (NumberFormatException ex) {
-                System.err.println("Not a valid number: " + readLine);
+                System.out.println("Not a valid number: " + readLine);
             }
 
             switch (menuChoice) {
@@ -232,33 +104,84 @@ public class Main {
         }
     }
 
-    private static void pause() {
-        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Press Enter to continue:");
+    //=== Search Stars
+    /*Print out (to the screen) the movies featuring a given star.
+    All movie attributes should appear, labeled and neatly arranged;
+    the star can be queried via first name and/or last name or by ID.
+    First name and/or last name means that a star should be queried by
+    both a) first name AND last name b) first name or last name. */
+    private static void searchStarNames() {
+        //TODO add search for first or last name exclusive?
+
+        System.out.print("\n\n\nEnter search term: ");
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String readLine = null;
+
         try {
-            int ch = stdin.read();
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
+            readLine = br.readLine();
+        } catch (IOException ioe) {
+            System.out.println("Invalid Input!");
+        } catch (NumberFormatException ex) {
+            System.out.println("Not a valid number: " + readLine);
         }
 
-    }
-
-    private static int addStar(Integer id, String firstName, String lastName, String dob, String imgURL) {
+        ResultSet result;
         try {
-            Statement update = connection.createStatement();
-            int retID = update.executeUpdate("INSERT INTO stars VALUES("
-                    + id + ", '"
-                    + firstName + "', '"
-                    + lastName + "', DATE('"
-                    + dob + "'), '"
-                    + imgURL + "');");
-            return retID;
+
+            result = queryStarNames(readLine);
+            System.out.println("\nThe results of the query\n");
+            printStars(result);
+
         } catch (SQLException ex) {
             printSQLError(ex);
         }
-        return 0;
     }
 
+    private static ResultSet queryStarNames(String readLine) throws SQLException {
+        //Search by name, returns if found in first or last name inclusive
+        Statement select = connection.createStatement();
+        ResultSet result = select.executeQuery("Select * from stars WHERE (first_name = '" + readLine + "' OR last_name = '" + readLine + "' )");
+        return result;
+    }
+
+    private static void searchStarIDs() {
+
+        System.out.print("\n\n\nEnter star ID: ");
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String readLine = null;
+
+        try {
+            readLine = br.readLine();
+        } catch (IOException ioe) {
+            System.out.println("Invalid Input!");
+        } catch (NumberFormatException ex) {
+            System.out.println("Not a valid number: " + readLine);
+        }
+
+        ResultSet result;
+        try {
+
+            result = queryStarID(readLine);
+            System.out.println("\nThe results of the query\n");
+            printStars(result);
+
+        } catch (SQLException ex) {
+            printSQLError(ex);
+        }
+    }
+
+    private static ResultSet queryStarID(String readLine) throws SQLException {
+        //Search by star ID
+        Statement select = connection.createStatement();
+        ResultSet result = select.executeQuery("Select * from stars WHERE (id = '" + readLine + "' )");
+        return result;
+    }
+
+    //=== Add Star
+    /*Insert a new star into the database. If the star has a single name,
+    add it as his last_name and assign an empty string ("") to first_name. */
     private static void addStarMenu() {
         int id = 0;
         String firstName = "";
@@ -355,7 +278,7 @@ public class Main {
             } catch (IOException ioe) {
                 System.out.println("Invalid Input!");
             } catch (NumberFormatException ex) {
-                System.err.println("Not a valid number: " + readLine);
+                System.out.println("Not a valid number: " + readLine);
 //            } catch (MySQLIntegrityConstraintViolationException e){}
             }
 
@@ -364,13 +287,28 @@ public class Main {
         }
     }
 
+    private static int addStar(Integer id, String firstName, String lastName, String dob, String imgURL) {
+        try {
+            Statement update = connection.createStatement();
+            int retID = update.executeUpdate("INSERT INTO stars VALUES("
+                    + id + ", '"
+                    + firstName + "', '"
+                    + lastName + "', DATE('"
+                    + dob + "'), '"
+                    + imgURL + "');");
+            return retID;
+        } catch (SQLException ex) {
+            printSQLError(ex);
+        }
+        return 0;
+    }
+
+    //=== Add Customer
+    /*Insert a customer into the database. Do not allow insertion of a customer
+    if his credit card does not exist in the credit card table. The credit
+    card table simulates the bank records. If the customer has a single name,
+    add it as his last_name and and assign an empty string ("") to first_name. */
     private static void addCustomerMenu() {
-        /* TODO Insert a customer into the database. Do not allow insertion of a
-        / customer if his credit card does not exist in the credit card table.
-        / The credit card table simulates the bank records. If the customer has
-        / a single name, add it as his last_name and and assign an empty string
-        / ("") to first_name.
-         */
         int id = 0;
         String firstName = "";
         String lastName = "";
@@ -484,7 +422,7 @@ public class Main {
             } catch (IOException ioe) {
                 System.out.println("Invalid Input!");
             } catch (NumberFormatException ex) {
-                System.err.println("Not a valid number: " + readLine);
+                System.out.println("Not a valid number: " + readLine);
 //            } catch (MySQLIntegrityConstraintViolationException e){}
             }
 
@@ -511,19 +449,105 @@ public class Main {
         return 0;
     }
 
+    //=== Delete Customer
+    /*Delete a customer from the database. */
     private static void deleteCustomerMenu() {
         //TODO Delete a customer from the database. 
         System.out.println("=== Not yet implemented ===");
     }
 
+    //=== Get Metadata
+    /*Provide the metadata of the database; in particular, print out the name
+    of each table and, for each table, each attribute and its type. */
+    private static void getMetadata() {
+        boolean step = false;
+        try {
+            // SQL statement to select all tables
+            Statement select = connection.createStatement();
+            Statement tableQuery = connection.createStatement();
+            ResultSet tableList = tableQuery.executeQuery("SHOW TABLES");
+
+            System.out.println("\n\n\n______________________________________");
+
+
+            while (tableList.next()) {
+                if (step) {
+                    pause(); // Pause before each table; except the first
+                    System.out.println("______________________________________");
+                } else {
+                    step = true;
+                }
+                String table = tableList.getString(1);
+                System.out.println("\nTABLE: " + table);
+
+                ResultSet result = select.executeQuery("Select * from " + table);
+                // Get metatdata from stars; print # of attributes in table
+                ResultSetMetaData metadata = result.getMetaData();
+                System.out.println("\nThere are " + metadata.getColumnCount() + " columns");
+                // Print type of each attribute
+                for (int i = 1; i <= metadata.getColumnCount(); i++) {
+                    System.out.println("(" + i + ") " + metadata.getColumnName(i) + " :: " + metadata.getColumnTypeName(i));
+                }
+                System.out.println("\n______________________________________");
+            }
+        } catch (SQLException ex) {
+            printSQLError(ex);
+        }
+    }
+
+    //=== SQL Query
+    /* Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command. The system
+    should take the corresponding action, and return and display the valid
+    results. For a SELECT query, display the answers. For the other types
+    of queries, give enough information about the status of the execution
+    of the query. For instance, for an UPDATE query, show the user how many
+    records have been successfully changed.*/
     private static void openQueryMenu() {
-        /* Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command. The system
-        should take the corresponding action, and return and display the valid
-        results. For a SELECT query, display the answers. For the other types
-        of queries, give enough information about the status of the execution
-        of the query. For instance, for an UPDATE query, show the user how many
-        records have been successfully changed.
-         */
+        //TODO Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command.
         System.out.println("=== Not yet implemented ===");
+    }
+
+    //=== Extra Functions
+    private static void printStars(ResultSet result) throws SQLException {
+        // print table's contents, field by field
+        int count = 0;
+        while (result.next()) {
+            System.out.println("ID = " + result.getInt(1));
+            System.out.println("Name = " + result.getString(2) + " " + result.getString(3));
+            System.out.println("DOB = " + result.getString(4));
+            System.out.println("photoURL = " + result.getString(5));
+            if (++count % 3 == 0) {
+                System.out.println("______________________________________");
+                pause();
+                System.out.println("______________________________________\n");
+            } else {
+                System.out.println();
+            }
+        }
+    }
+
+    private static void printSQLError(SQLException ex) {
+        /*In cases where the requested tasks cannot be accomplished, print out
+         a clear, crisp error message–do not just pass along some Java exception! */
+        //TODO add clean mySQL error messages
+        // List of error codes:
+        // http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html
+        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
+        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html
+        System.out.println("----SQLException----");
+        System.out.println("SQLState:  " + ex.getSQLState());
+        System.out.println("Message:  " + ex.getMessage());
+        System.out.println("Vendor Error Code:  " + ex.getErrorCode());
+    }
+
+    private static void pause() {
+        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Press Enter to continue:");
+        try {
+            int ch = stdin.read();
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+
     }
 }
