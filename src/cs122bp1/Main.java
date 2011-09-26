@@ -4,7 +4,6 @@
  */
 package cs122bp1;
 
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,15 +27,16 @@ public class Main {
         Class.forName("com.mysql.jdbc.Driver").newInstance();
 
         // Connect to the test database
+        //TODO ask for login name and password
         connection = DriverManager.getConnection("jdbc:mysql:///moviedb", "cs122b", "cs122b");
 
-        mainMenu();
+        mainMenu(); //TODO add login loop
 
     }
 
     private static void getMetadata() throws SQLException {
         boolean step = false;
-        // Create an execute an SQL statement to select all of table"Stars" records
+        // SQL statement to select all tables
         Statement select = connection.createStatement();
         Statement tableQuery = connection.createStatement();
         ResultSet tableList = tableQuery.executeQuery("SHOW TABLES");
@@ -46,7 +46,7 @@ public class Main {
 
         while (tableList.next()) {
             if (step) {
-                pause();
+                pause(); // Pause before each table; except the first
             } else {
                 step = true;
             }
@@ -55,9 +55,8 @@ public class Main {
 
             ResultSet result = select.executeQuery("Select * from " + table);
             // Get metatdata from stars; print # of attributes in table
-            //System.out.println("The results of the query");
             ResultSetMetaData metadata = result.getMetaData();
-            System.out.println("There are " + metadata.getColumnCount() + " columns");
+            System.out.println("\nThere are " + metadata.getColumnCount() + " columns");
             // Print type of each attribute
             for (int i = 1; i <= metadata.getColumnCount(); i++) {
                 System.out.println("(" + i + ") " + metadata.getColumnName(i) + " :: " + metadata.getColumnTypeName(i));
@@ -67,7 +66,8 @@ public class Main {
         }
     }
 
-    private static void searchNames() {
+    private static void searchStarNames() {
+        //TODO add search for first or last name exclusive?
 
         System.out.print("\n\n\nEnter search term: ");
 
@@ -85,7 +85,7 @@ public class Main {
         ResultSet result;
         try {
 
-            result = queryNames(readLine);
+            result = queryStarNames(readLine);
             System.out.println("\nThe results of the query\n");
             printStars(result);
 
@@ -94,7 +94,7 @@ public class Main {
         }
     }
 
-    private static void searchIDs() {
+    private static void searchStarIDs() {
 
         System.out.print("\n\n\nEnter star ID: ");
 
@@ -112,7 +112,7 @@ public class Main {
         ResultSet result;
         try {
 
-            result = queryID(readLine);
+            result = queryStarID(readLine);
             System.out.println("\nThe results of the query\n");
             printStars(result);
 
@@ -139,13 +139,15 @@ public class Main {
         }
     }
 
-    private static ResultSet queryNames(String readLine) throws SQLException {
+    private static ResultSet queryStarNames(String readLine) throws SQLException {
+        //Search by name, returns if found in first or last name inclusive
         Statement select = connection.createStatement();
         ResultSet result = select.executeQuery("Select * from stars WHERE (first_name = '" + readLine + "' OR last_name = '" + readLine + "' )");
         return result;
     }
 
-    private static ResultSet queryID(String readLine) throws SQLException {
+    private static ResultSet queryStarID(String readLine) throws SQLException {
+        //Search by star ID
         Statement select = connection.createStatement();
         ResultSet result = select.executeQuery("Select * from stars WHERE (id = '" + readLine + "' )");
         return result;
@@ -182,21 +184,23 @@ public class Main {
             try {
                 switch (menuChoice) {
                     case 1:
-                        searchNames();
+                        searchStarNames();
                         pause();
                         break;
                     case 2:
-                        searchIDs();
+                        searchStarIDs();
                         pause();
                         break;
                     case 3:
                         addStarMenu();
                         break;
                     case 4:
+                        //TODO addCustomerMenu();
                         addCustomerMenu();
                         pause();
                         break;
                     case 5:
+                        //TODO deleteCustomerMenu();
                         deleteCustomerMenu();
                         pause();
                         break;
@@ -205,6 +209,7 @@ public class Main {
                         pause();
                         break;
                     case 7:
+                        //TODO openQueryMenu();
                         openQueryMenu();
                         pause();
                         break;
@@ -239,9 +244,9 @@ public class Main {
                     + lastName + "', DATE('"
                     + dob + "'), '"
                     + imgURL + "');");
-            //System.out.println("retID = " + retID);
             return retID;
         } catch (SQLException ex) {
+            //TODO add mySQL error messages
             System.out.println(ex.getMessage());
         }
         return 0;
@@ -344,14 +349,28 @@ public class Main {
     }
 
     private static void addCustomerMenu() {
-        throw new UnsupportedOperationException("Not yet implemented");
+        /* TODO Insert a customer into the database. Do not allow insertion of a
+        / customer if his credit card does not exist in the credit card table.
+        / The credit card table simulates the bank records. If the customer has
+        / a single name, add it as his last_name and and assign an empty string
+        / ("") to first_name.
+         */
+        System.out.println("Not yet implemented");
     }
 
     private static void deleteCustomerMenu() {
-        throw new UnsupportedOperationException("Not yet implemented");
+        //TODO Delete a customer from the database. 
+        System.out.println("Not yet implemented");
     }
 
     private static void openQueryMenu() {
-        throw new UnsupportedOperationException("Not yet implemented");
+        /* Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command. The system
+        should take the corresponding action, and return and display the valid
+        results. For a SELECT query, display the answers. For the other types
+        of queries, give enough information about the status of the execution
+        of the query. For instance, for an UPDATE query, show the user how many
+        records have been successfully changed.
+         */
+        System.out.println("Not yet implemented");
     }
 }
