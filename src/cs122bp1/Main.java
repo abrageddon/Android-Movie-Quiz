@@ -70,6 +70,10 @@ public class Main {
 
     private static void printSQLError(SQLException ex) {
         //TODO add clean mySQL error messages
+        // List of error codes:
+        // http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html
+        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
+        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html
         System.err.println("----SQLException----");
         System.err.println("SQLState:  " + ex.getSQLState());
         System.err.println("Message:  " + ex.getMessage());
@@ -454,6 +458,8 @@ public class Main {
                         //TODO validate all fields
                         //TODO check cc_id against cc database and validate name
                         //Vendor Error Code:  1452; i think means the cc_id is not in table:creditcards
+                        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
+                        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html
 
                         added = addCustomer(id, firstName, lastName, cc_id, address, email, password);
                         if (added != 0) {
