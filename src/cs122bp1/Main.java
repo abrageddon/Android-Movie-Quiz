@@ -16,7 +16,6 @@ import java.sql.*;                              // Enable SQL processing
 public class Main {
 
     static Connection connection;
-    
     static boolean isLoggedIn;
     static boolean exit;
 
@@ -33,42 +32,51 @@ public class Main {
         (and a message to that effect appears on the screen); if access is not
         allowed, it says why (e.g., the database is not present, the password
         is wrong). Allow a way for the employee to exit easily. */
-        
+
         isLoggedIn = false;
-        
-        while (!exit)
-        {
-        	if (isLoggedIn)
-        		mainMenu();
-        	else
-        		login();
+
+        while (!exit) {
+            if (isLoggedIn) {
+                mainMenu();
+            } else {
+                login();
+            }
         }
 
     }
-    
+
     // TODO support for when login fails (database not present, incorrect username/password)
     private static void login() throws Exception {
-		System.out.println("Please log in.");
-        
+        System.out.println("\nPlease log in.\n");
+
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String username = null;
         String password = null;
-        
+
         System.out.print("Username: ");
         username = br.readLine();
         System.out.print("Password: ");
         password = br.readLine();
 
-    	// Connect to the test database
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/moviedb", username, password);  
-        
-        System.out.println("Welcome, " + username + ".");
-        
-        br.close();
+        try {
+            // Connect to the test database
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/moviedb", username, password);
+
+
+            isLoggedIn = true;
+            System.out.println("\n\nWelcome, " + username + ".");
+        } catch (SQLException ex) {
+            printSQLError(ex);
+        }
     }
-    
+
     private static void logout() {
-    	isLoggedIn = false;
+        try {
+            connection.close();
+        } catch (SQLException ex) {
+            printSQLError(ex);
+        }
+        isLoggedIn = false;
     }
 
     private static void mainMenu() {
@@ -88,7 +96,7 @@ public class Main {
 
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String readLine = null;
-            int menuChoice = 0;
+            int menuChoice = -1;
 
             try {
                 readLine = br.readLine();
@@ -130,10 +138,12 @@ public class Main {
                     break;
                 case 8:
                     logout();
-                    break;
+                    return;
                 case 0:
-                	exit();
-                    break;//no option selected
+                    exit();
+                    return;
+                case -1:
+                    continue;
                 default:
                     System.out.println("Not a valid menu option.");
                     pause();
@@ -141,10 +151,16 @@ public class Main {
             }
         }
     }
-    
+
     private static void exit() {
-    	// TODO clean up i.e. close buffer streams and connections
-    	exit = true;
+        try {
+            // TODO clean up i.e. close buffer streams and connections
+            connection.close();
+        } catch (SQLException ex) {
+            printSQLError(ex);
+        }
+        exit = true;
+
     }
 
     //=== Search Stars
@@ -155,7 +171,7 @@ public class Main {
     both a) first name AND last name b) first name or last name. */
     private static void searchStarNames() {
 
-        int searchBy = 0; //0 = any; 1 = first name; 2 = last name
+        int searchBy = -1; //0 = any; 1 = first name; 2 = last name
         boolean notSelected = true;
         String readLine = "";
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -179,7 +195,9 @@ public class Main {
                 pause();
             }
 
-            if (searchBy >= 0 && searchBy <= 2) {
+            if (searchBy < 0 || searchBy > 2) {
+                notSelected = true;
+            } else {
                 notSelected = false;
             }
         }
@@ -235,21 +253,22 @@ public class Main {
     }
 
     private static void searchStarIDs() {
-
-        System.out.print("\n\n\nEnter star ID: ");
-
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String readLine = null;
         Integer starID = 0;
-        try {
-            readLine = br.readLine();
-            starID = Integer.valueOf(readLine);
-        } catch (IOException ioe) {
-            System.out.println("Invalid Input!");
-            pause();
-        } catch (NumberFormatException ex) {
-            System.out.println("Not a valid number: " + readLine);
-            pause();
+
+        while (starID == 0) {
+        System.out.print("\n\n\nEnter star ID: ");
+            try {
+                readLine = br.readLine();
+                starID = Integer.valueOf(readLine);
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
+                pause();
+            } catch (NumberFormatException ex) {
+                System.out.println("Not a valid number: " + readLine);
+                pause();
+            }
         }
 
         ResultSet result;
@@ -836,7 +855,17 @@ public class Main {
                 //Foreign key, e.g. the credit card number, has failed.
                 // triggers for star ID conflicts too
                 System.out.println("SQL Error -- Conflict with consistency.");
-            } else {
+            } else if (sqlError.getSQLState().equals("28000")) {
+                // (SQLState 28000) java.sql.SQLException: Access denied for user -- Invalid password
+                System.out.println("\n" + sqlError.getMessage());
+            } else if (sqlError.getClass() == com.mysql.jdbc.exceptions.jdbc4.CommunicationsException.class) {
+                // No response
+                // com.mysql.jdbc.exceptions.jdbc4.CommunicationsException
+                System.out.println("\nCould not contact mySQL server at localhost.");
+            } else if (sqlError.getErrorCode() == 1142){
+                // (mySQL Error 1142) 	ER_TABLEACCESS_DENIED_ERROR
+                System.out.println("\nUser does not have required permissions.\n");
+            }else {
                 System.out.println("----SQLException----");
                 System.out.println("SQLState:  " + sqlError.getSQLState());
                 System.out.println("Vendor Error Code:  " + sqlError.getErrorCode());
