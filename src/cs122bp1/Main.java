@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package cs122bp1;
 
 import java.io.BufferedReader;
@@ -19,12 +16,7 @@ public class Main {
     static boolean isLoggedIn;
     static boolean exit;
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) throws Exception {
-        // Incorporate mySQL driver
-        Class.forName("com.mysql.jdbc.Driver").newInstance();
 
         /*When this program is run, the user is asked for the the user name
         and the user password (the database user login info not the password
@@ -32,19 +24,19 @@ public class Main {
         (and a message to that effect appears on the screen); if access is not
         allowed, it says why (e.g., the database is not present, the password
         is wrong). Allow a way for the employee to exit easily. */
-
-        isLoggedIn = false;
-
-        while (!exit) {
-            if (isLoggedIn) {
-                mainMenu();
-            } else {
-                login();
-            }
+        
+        setup();
+        
+        while (!exit)
+        {
+        	if (isLoggedIn)
+        		mainMenu();
+        	else
+        		login();
         }
-
     }
 
+// LOG IN/OUT {{{1
     private static void login() throws Exception {
         //TODO exit w/o logging in
         System.out.println("\nPlease log in.\n");
@@ -97,8 +89,6 @@ public class Main {
             }
         }
 
-
-
         try {
             // Connect to the test database
             connection = DriverManager.getConnection("jdbc:mysql://" + server + ":3306/moviedb", username, password);
@@ -110,14 +100,16 @@ public class Main {
     }
 
     private static void logout() {
+    	isLoggedIn = false;
+    	System.out.println("You are now logged out.");
         try {
             connection.close();
         } catch (SQLException ex) {
             printSQLError(ex);
         }
-        isLoggedIn = false;
     }
-
+// }}}1
+// MAIN MENU {{{1
     private static void mainMenu() {
         while (true) {
             System.out.print("\n\n\n\n=== Menu ===\n"
@@ -139,6 +131,7 @@ public class Main {
 
             try {
                 readLine = br.readLine();
+                System.out.println(readLine);
                 menuChoice = Integer.parseInt(readLine);
             } catch (IOException ioe) {
                 System.out.println("Invalid Input!");
@@ -190,17 +183,30 @@ public class Main {
             }
         }
     }
-
+// }}}1    
+// SETUP/CLEANUP {{{1
+    private static void setup()
+    {
+        exit = false;
+        isLoggedIn = false;
+        // Incorporate mySQL driver
+        try {
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+        } catch (Exception e) {
+        }
+    }
+    
     private static void exit() {
+    	exit = true;
         try {
             connection.close();
-        } catch (SQLException ex) {
-            printSQLError(ex);
+        } catch (SQLException e) {
+            printSQLError(e);
         }
-        exit = true;
-
+        System.out.println("Goodbye.");
     }
-
+// }}}1
+// STAR {{{1
     //=== Search Stars
     /*Print out (to the screen) the movies featuring a given star.
     All movie attributes should appear, labeled and neatly arranged;
@@ -488,6 +494,8 @@ public class Main {
         return 0;
     }
 
+// }}}1
+// CUSTOMER {{{1
     //=== Add Customer
     /*Insert a customer into the database. Do not allow insertion of a customer
     if his credit card does not exist in the credit card table. The credit
@@ -501,6 +509,8 @@ public class Main {
         String address = "";
         String email = "";
         String password = "";
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
             System.out.print("\n\n\n\n=== Add Customer Menu ===\n"
@@ -525,7 +535,6 @@ public class Main {
                     + "______________________________________\n"
                     + ":");
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String readLine = null;
             int menuChoice = -1;
 
@@ -610,10 +619,8 @@ public class Main {
             } catch (IOException ioe) {
                 System.out.println("Invalid Input!");
             }
-
-
-
         }
+        
     }
 
     private static boolean canAddCustomer(int id, String firstName, String lastName, String cc_id, String address, String email, String password) {
@@ -783,6 +790,7 @@ public class Main {
         }
         return retID;
     }
+// }}}1
 
     //=== Get Metadata
     /*Provide the metadata of the database; in particular, print out the name
@@ -832,9 +840,29 @@ public class Main {
     records have been successfully changed.*/
     private static void openQueryMenu() {
         //TODO Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command.
-        System.out.println("\n=== Not yet implemented ===");
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Enter SQL Query: ");
+        String query;
+		try {
+            query = br.readLine();
+            Statement command = connection.createStatement();
+            ResultSet result = command.executeQuery(query);
+            char queryType = query.trim().toLowerCase().charAt(0);
+            
+            if (queryType == 's') {			// SELECT
+            	System.out.println("SELECT command executed.");
+            } else if (queryType == 'u') {	// UPDATE
+            } else if (queryType == 'i') {	// INSERT
+            } else if (queryType == 'd') {	// DELETE
+            }
+        } catch (SQLException e) {
+        	printSQLError(e);
+        } catch (IOException e) {
+        	
+        }
     }
 
+// HELPERS {{{
     //=== Extra Functions
     private static void printStars(ResultSet result) throws SQLException {
         // print table's contents, field by field
@@ -936,4 +964,5 @@ public class Main {
         }
 
     }
+// }}}
 }
