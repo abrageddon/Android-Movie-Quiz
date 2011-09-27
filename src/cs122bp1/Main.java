@@ -4,7 +4,6 @@
  */
 package cs122bp1;
 
-import com.mysql.jdbc.exceptions.MySQLDataException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -157,9 +156,10 @@ public class Main {
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String readLine = null;
-
+        Integer starID = 0;
         try {
             readLine = br.readLine();
+            starID = Integer.valueOf(readLine);
         } catch (IOException ioe) {
             System.out.println("Invalid Input!");
             pause();
@@ -170,8 +170,7 @@ public class Main {
 
         ResultSet result;
         try {
-
-            result = queryStarID(readLine);
+            result = queryStarID(starID);
             System.out.println("\nThe results of the query\n");
             printStars(result);
 
@@ -180,10 +179,10 @@ public class Main {
         }
     }
 
-    private static ResultSet queryStarID(String readLine) throws SQLException {
+    private static ResultSet queryStarID(int readLine) throws SQLException {
         //Search by star ID
         Statement select = connection.createStatement();
-        ResultSet result = select.executeQuery("Select * from stars WHERE (id = '" + readLine + "' )");
+        ResultSet result = select.executeQuery("Select * from stars WHERE (id = " + readLine + " )");
         return result;
     }
 
@@ -194,7 +193,7 @@ public class Main {
         int id = 0;
         String firstName = "";
         String lastName = "";
-        String dob = "";
+        String dob = "0000/00/00";
         String imageURL = "";
 
         while (true) {
@@ -264,21 +263,9 @@ public class Main {
                     case 6:
                         int added = 0;
 
-                        if (firstName.isEmpty() && lastName.isEmpty()) {
-                            System.out.println("Star must have a name.");
-                            pause();
-                            break;
+                        if (canAddStar(id, firstName, lastName, dob, imageURL)) {
+                            added = addStar(id, firstName, lastName, dob, imageURL);
                         }
-                        if (!firstName.isEmpty() && lastName.isEmpty()) {
-                            System.out.println("Improperly formatted single name.\n"
-                                    + "A single name must be put in the last name field.");
-                            pause();
-                            break;
-                        }
-
-
-                        added = addStar(id, firstName, lastName, dob, imageURL);
-
 
                         if (added != 0) {
                             System.out.println("______________________________________\n"
@@ -314,6 +301,36 @@ public class Main {
         }
     }
 
+    private static boolean canAddStar(Integer id, String firstName, String lastName, String dob, String imgURL) {
+
+        if (firstName.isEmpty() && lastName.isEmpty()) {
+            System.out.println("Star must have a name.");
+            pause();
+            return false;
+        }
+        if (!firstName.isEmpty() && lastName.isEmpty()) {
+            System.out.println("Improperly formatted single name.\n"
+                    + "A single name must be put in the last name field.");
+            pause();
+            return false;
+        }
+
+        //TODO validate dob format
+
+        try {
+            ResultSet result = queryStarID(id);
+            if (result.next()) {
+                System.out.println("\n\nStar ID already exists.");
+                return false;
+            }
+        } catch (SQLException ex) {
+            printSQLError(ex);
+            return false;
+        }
+
+        return true;
+    }
+
     private static int addStar(Integer id, String firstName, String lastName, String dob, String imgURL) {
         try {
             Statement update = connection.createStatement();
@@ -339,7 +356,7 @@ public class Main {
         int id = 0;
         String firstName = "";
         String lastName = "";
-        int cc_id = 0;
+        String cc_id = "";
         String address = "";
         String email = "";
         String password = "";
@@ -406,7 +423,7 @@ public class Main {
                     case 4:
                         //TODO must be number
                         System.out.print("Enter Credit Card Number:");
-                        cc_id = Integer.parseInt(br.readLine());
+                        cc_id = br.readLine();
                         break;
                     case 5:
                         System.out.print("Enter Address:");
@@ -423,36 +440,9 @@ public class Main {
                     case 8:
                         int added = 0;
 
-                        if (firstName.isEmpty() && lastName.isEmpty()) {
-                            System.out.println("Customer must have a name.");
-                            pause();
-                            break;
+                        if (canAddCustomer(id, firstName, lastName, cc_id, address, email, password)) {
+                            added = addCustomer(id, firstName, lastName, cc_id, address, email, password);
                         }
-                        if (!firstName.isEmpty() && lastName.isEmpty()) {
-                            System.out.println("Improperly formatted single name.\n"
-                                    + "A single name must be put in the last name field.");
-                            pause();
-                            break;
-                        }
-                        if (address.isEmpty()) {
-                            System.out.println("Customer must have an address.");
-                            pause();
-                            break;
-                        }
-                        if (email.isEmpty()) {
-                            System.out.println("Customer must have an e-mail address.");
-                            pause();
-                            break;
-                        }
-                        if (password.isEmpty()) {
-                            System.out.println("Customer must have a password.");
-                            pause();
-                            break;
-                        }
-
-
-                        added = addCustomer(id, firstName, lastName, cc_id, address, email, password);
-
 
                         if (added != 0) {
                             System.out.println("______________________________________\n"
@@ -460,7 +450,7 @@ public class Main {
                                     + "______________________________________");
                             pause();
                         } else {
-                            System.out.println("______________________________________\n"
+                            System.out.println("\n"
                                     + firstName + " " + lastName + " NOT added\n"
                                     + "______________________________________");
                             pause();
@@ -486,14 +476,66 @@ public class Main {
         }
     }
 
-    private static int addCustomer(int id, String firstName, String lastName, int cc_id, String address, String email, String password) {
+    private static boolean canAddCustomer(int id, String firstName, String lastName, String cc_id, String address, String email, String password) {
+
+        if (firstName.isEmpty() && lastName.isEmpty()) {
+            System.out.println("Customer must have a name.");
+            pause();
+            return false;
+        }
+        if (!firstName.isEmpty() && lastName.isEmpty()) {
+            System.out.println("Improperly formatted single name.\n"
+                    + "A single name must be put in the last name field.");
+            pause();
+            return false;
+        }
+        if (address.isEmpty()) {
+            System.out.println("Customer must have an address.");
+            pause();
+            return false;
+        }
+        if (email.isEmpty()) {
+            System.out.println("Customer must have an e-mail address.");
+            pause();
+            return false;
+        }
+        if (password.isEmpty()) {
+            System.out.println("Customer must have a password.");
+            pause();
+            return false;
+        }
+
+        try {
+            //TODO check unique customer ID
+
+            Statement select = connection.createStatement();
+            ResultSet result = select.executeQuery("SELECT * FROM creditcards c "
+                    + "WHERE id = '" + cc_id + "';");
+            if (!result.next()) {
+                System.out.println("\n\nInvalid credit card number.");
+                return false;
+            }
+
+            //TODO remove spaces from cc_id on input?
+            //TODO do we have to match the name on file to the customer name?
+
+        } catch (SQLException ex) {
+            printSQLError(ex);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static int addCustomer(int id, String firstName, String lastName, String cc_id, String address, String email, String password) {
         try {
             Statement update = connection.createStatement();
+            //TODO compare provided name and cc_id to database records
             int retID = update.executeUpdate("INSERT INTO customers VALUES("
                     + id + ", '"
                     + firstName + "', '"
-                    + lastName + "', "
-                    + cc_id + ", '"
+                    + lastName + "', '"
+                    + cc_id + "', '"
                     + address + "','"
                     + email + "','"
                     + password + "');");
@@ -593,16 +635,19 @@ public class Main {
         // http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html
         // http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
         // http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html
+        // http://www.java2s.com/Open-Source/Java-Document/Database-JDBC-Connection-Pool/mysql/com.mysql.jdbc.exceptions.jdbc4.htm
+        // http://www.java2s.com/Open-Source/Java-Document/Database-JDBC-Connection-Pool/mysql/com.mysql.jdbc.htm
 
         SQLException sqlError = ex;
         while (sqlError != null) {
 
             if (sqlError.getClass() == com.mysql.jdbc.MysqlDataTruncation.class) {
                 //Improperly formatted input
-                System.out.println("Invalid Date Format For Date Of Birth.");
+                System.out.println("SQL Error -- Improperly formatted input.");
             } else if (sqlError.getClass() == com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException.class) {
-                //Foreign key, The credit card number, has failed.
-                System.out.println("Invalid Credit Card Number.");
+                //Foreign key, e.g. the credit card number, has failed.
+                // triggers for star ID conflicts too
+                System.out.println("SQL Error -- Conflict with consistency.");
             } else {
                 System.out.println("----SQLException----");
                 System.out.println("SQLState:  " + sqlError.getSQLState());
