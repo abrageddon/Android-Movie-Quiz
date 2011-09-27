@@ -16,6 +16,9 @@ import java.sql.*;                              // Enable SQL processing
 public class Main {
 
     static Connection connection;
+    
+    static boolean isLoggedIn;
+    static boolean exit;
 
     /**
      * @param args the command line arguments
@@ -30,13 +33,40 @@ public class Main {
         (and a message to that effect appears on the screen); if access is not
         allowed, it says why (e.g., the database is not present, the password
         is wrong). Allow a way for the employee to exit easily. */
-        //TODO ask for login name and password
+        
+        
+        isLoggedIn = false;
+        
+        while (!exit)
+        {
+        	if (isLoggedIn)
+        		mainMenu();
+        	else
+        		login();
+        }
 
-        // Connect to the test database
-        connection = DriverManager.getConnection("jdbc:mysql:///moviedb", "cs122b", "cs122b");
+    }
+    
+    private static void login() throws Exception {
+		System.out.println("Please log in.");
+        
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String username = null;
+        String password = null;
+        
+        System.out.print("Username: ");
+        username = br.readLine();
+        System.out.print("Password: ");
+        password = br.readLine();
 
-        mainMenu(); //TODO add login loop
-
+    	// Connect to the test database
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/moviedb", username, password);   
+        
+        br.close();
+    }
+    
+    private static void logout() {
+    	isLoggedIn = false;
     }
 
     private static void mainMenu() {
@@ -50,6 +80,7 @@ public class Main {
                     + "6) Metadata of database\n"
                     + "7) SQL query\n"
                     + "8) Log out\n"
+                    + "0) Exit\n"
                     + "______________________________________\n"
                     + ":");
 
@@ -98,8 +129,10 @@ public class Main {
                     pause();
                     break;
                 case 8:
-                    return;
+                    logout();
+                    break;
                 case 0:
+                	exit();
                     break;//no option selected
                 default:
                     System.out.println("Not a valid menu option.");
@@ -107,6 +140,11 @@ public class Main {
                     break;
             }
         }
+    }
+    
+    private static void exit() {
+    	// TODO clean up i.e. close buffer streams and connections
+    	exit = true;
     }
 
     //=== Search Stars
