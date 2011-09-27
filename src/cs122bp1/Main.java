@@ -1,10 +1,11 @@
-
 package cs122bp1;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.*;                              // Enable SQL processing
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 /**
  *
@@ -24,21 +25,20 @@ public class Main {
         (and a message to that effect appears on the screen); if access is not
         allowed, it says why (e.g., the database is not present, the password
         is wrong). Allow a way for the employee to exit easily. */
-        
+
         setup();
-        
-        while (!exit)
-        {
-        	if (isLoggedIn)
-        		mainMenu();
-        	else
-        		login();
+
+        while (!exit) {
+            if (isLoggedIn) {
+                mainMenu();
+            } else {
+                login();
+            }
         }
     }
 
 // LOG IN/OUT {{{1
     private static void login() throws Exception {
-        //TODO exit w/o logging in
         System.out.println("\nPlease log in.\n");
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -100,8 +100,8 @@ public class Main {
     }
 
     private static void logout() {
-    	isLoggedIn = false;
-    	System.out.println("You are now logged out.");
+        isLoggedIn = false;
+        System.out.println("You are now logged out.");
         try {
             connection.close();
         } catch (SQLException ex) {
@@ -110,6 +110,7 @@ public class Main {
     }
 // }}}1
 // MAIN MENU {{{1
+
     private static void mainMenu() {
         while (true) {
             System.out.print("\n\n\n\n=== Menu ===\n"
@@ -185,8 +186,8 @@ public class Main {
     }
 // }}}1    
 // SETUP/CLEANUP {{{1
-    private static void setup()
-    {
+
+    private static void setup() {
         exit = false;
         isLoggedIn = false;
         // Incorporate mySQL driver
@@ -195,15 +196,16 @@ public class Main {
         } catch (Exception e) {
         }
     }
-    
+
     private static void exit() {
-    	exit = true;
+        exit = true;
         try {
             connection.close();
         } catch (SQLException e) {
             printSQLError(e);
         }
-        System.out.println("Goodbye.");
+        isLoggedIn = false;
+        System.out.println("\nGoodbye.");
     }
 // }}}1
 // STAR {{{1
@@ -213,6 +215,7 @@ public class Main {
     the star can be queried via first name and/or last name or by ID.
     First name and/or last name means that a star should be queried by
     both a) first name AND last name b) first name or last name. */
+
     private static void searchStarNames() {
 
         int searchBy = -1; //0 = any; 1 = first name; 2 = last name
@@ -340,7 +343,7 @@ public class Main {
         int id = 0;
         String firstName = "";
         String lastName = "";
-        String dob = "0000/00/00";
+        String dob = "";
         String imageURL = "";
 
         while (true) {
@@ -399,9 +402,11 @@ public class Main {
                         firstName = "";
                         break;
                     case 4:
-                        //TODO must match format YYYY/MM/DD
-                        System.out.print("Enter Date of Birth (YYYY/MM/DD):");
-                        dob = br.readLine();
+                        dob = "";
+                        do {
+                            System.out.print("Enter Date of Birth (YYYY/MM/DD):");
+                            dob = br.readLine();
+                        }while (!isValidDate(dob));
                         break;
                     case 5:
                         System.out.print("Enter Image URL:");
@@ -462,7 +467,11 @@ public class Main {
             return false;
         }
 
-        //TODO validate dob format
+        if (!isValidDate(dob) || dob.equals("0000/00/00")) {
+            System.out.println("Must be YYYY/MM/DD");
+            pause();
+            return false;
+        }
 
         try {
             ResultSet result = queryStarID(id);
@@ -620,7 +629,7 @@ public class Main {
                 System.out.println("Invalid Input!");
             }
         }
-        
+
     }
 
     private static boolean canAddCustomer(int id, String firstName, String lastName, String cc_id, String address, String email, String password) {
@@ -843,22 +852,21 @@ public class Main {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Enter SQL Query: ");
         String query;
-		try {
+        try {
             query = br.readLine();
             Statement command = connection.createStatement();
             ResultSet result = command.executeQuery(query);
             char queryType = query.trim().toLowerCase().charAt(0);
-            
+
             if (queryType == 's') {			// SELECT
-            	System.out.println("SELECT command executed.");
+                System.out.println("SELECT command executed.");
             } else if (queryType == 'u') {	// UPDATE
             } else if (queryType == 'i') {	// INSERT
             } else if (queryType == 'd') {	// DELETE
             }
         } catch (SQLException e) {
-        	printSQLError(e);
+            printSQLError(e);
         } catch (IOException e) {
-        	
         }
     }
 
@@ -962,6 +970,24 @@ public class Main {
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
+
+    }
+
+    public static boolean isValidDate(String date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        java.util.Date testDate = null;
+        try {
+            testDate = sdf.parse(date);
+        } catch (ParseException e) {
+            System.out.println("the date you provided is in an invalid date"
+                    + " format.");
+            return false;
+        }
+        if (!sdf.format(testDate).equals(date)) {
+            System.out.println("The date that you provided is invalid.");
+            return false;
+        }
+        return true;
 
     }
 // }}}
