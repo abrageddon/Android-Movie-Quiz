@@ -108,9 +108,8 @@ public class Main {
             printSQLError(ex);
         }
     }
-// }}}1
-// MAIN MENU {{{1
-
+// }}}
+// MAIN MENU {{{
     private static void mainMenu() {
         while (true) {
             System.out.print("\n\n\n\n=== Menu ===\n"
@@ -184,10 +183,10 @@ public class Main {
             }
         }
     }
-// }}}1    
-// SETUP/CLEANUP {{{1
-
-    private static void setup() {
+// }}}    
+// SETUP/CLEANUP {{{
+    private static void setup()
+    {
         exit = false;
         isLoggedIn = false;
         // Incorporate mySQL driver
@@ -207,8 +206,8 @@ public class Main {
         isLoggedIn = false;
         System.out.println("\nGoodbye.");
     }
-// }}}1
-// STAR {{{1
+// }}}
+// STAR {{{
     //=== Search Stars
     /*Print out (to the screen) the movies featuring a given star.
     All movie attributes should appear, labeled and neatly arranged;
@@ -503,8 +502,8 @@ public class Main {
         return 0;
     }
 
-// }}}1
-// CUSTOMER {{{1
+// }}}
+// CUSTOMER {{{
     //=== Add Customer
     /*Insert a customer into the database. Do not allow insertion of a customer
     if his credit card does not exist in the credit card table. The credit
@@ -799,8 +798,8 @@ public class Main {
         }
         return retID;
     }
-// }}}1
-
+// }}}
+// METADATA {{{
     //=== Get Metadata
     /*Provide the metadata of the database; in particular, print out the name
     of each table and, for each table, each attribute and its type. */
@@ -839,7 +838,8 @@ public class Main {
             printSQLError(ex);
         }
     }
-
+// }}}
+// SQL Query {{{
     //=== SQL Query
     /* Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command. The system
     should take the corresponding action, and return and display the valid
@@ -869,7 +869,7 @@ public class Main {
         } catch (IOException e) {
         }
     }
-
+// }}}
 // HELPERS {{{
     //=== Extra Functions
     private static void printStars(ResultSet result) throws SQLException {
@@ -957,14 +957,12 @@ public class Main {
                 System.out.println("String:  " + sqlError.toString());
             }
             sqlError = sqlError.getNextException();
-
         }
-
     }
 
     private static void pause() {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Press Enter to continue:");
+        System.out.print("Press Enter to continue.");
         try {
             int ch = stdin.read();
         } catch (IOException ex) {
