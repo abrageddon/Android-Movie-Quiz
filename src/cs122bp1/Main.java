@@ -34,7 +34,6 @@ public class Main {
         allowed, it says why (e.g., the database is not present, the password
         is wrong). Allow a way for the employee to exit easily. */
         
-        
         isLoggedIn = false;
         
         while (!exit)
@@ -47,6 +46,7 @@ public class Main {
 
     }
     
+    // TODO support for when login fails (database not present, incorrect username/password)
     private static void login() throws Exception {
 		System.out.println("Please log in.");
         
@@ -60,7 +60,9 @@ public class Main {
         password = br.readLine();
 
     	// Connect to the test database
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/moviedb", username, password);   
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/moviedb", username, password);  
+        
+        System.out.println("Welcome, " + username + ".");
         
         br.close();
     }
