@@ -4,6 +4,7 @@
  */
 package cs122bp1;
 
+import com.mysql.jdbc.exceptions.MySQLDataException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -25,13 +26,13 @@ public class Main {
         Class.forName("com.mysql.jdbc.Driver").newInstance();
 
         /*When this program is run, the user is asked for the the user name
-         and the user password (the database user login info not the password
-         in the above schema) . If all is well, the employee is granted access
-         (and a message to that effect appears on the screen); if access is not
-         allowed, it says why (e.g., the database is not present, the password
-         is wrong). Allow a way for the employee to exit easily. */
+        and the user password (the database user login info not the password
+        in the above schema) . If all is well, the employee is granted access
+        (and a message to that effect appears on the screen); if access is not
+        allowed, it says why (e.g., the database is not present, the password
+        is wrong). Allow a way for the employee to exit easily. */
         //TODO ask for login name and password
-        
+
         // Connect to the test database
         connection = DriverManager.getConnection("jdbc:mysql:///moviedb", "cs122b", "cs122b");
 
@@ -62,8 +63,10 @@ public class Main {
                 menuChoice = Integer.parseInt(readLine);
             } catch (IOException ioe) {
                 System.out.println("Invalid Input!");
+                pause();
             } catch (NumberFormatException ex) {
                 System.out.println("Not a valid number: " + readLine);
+                pause();
             }
 
             switch (menuChoice) {
@@ -79,7 +82,6 @@ public class Main {
                     addStarMenu();
                     break;
                 case 4:
-                    //TODO addCustomerMenu();
                     addCustomerMenu();
                     break;
                 case 5:
@@ -98,7 +100,11 @@ public class Main {
                     break;
                 case 8:
                     return;
+                case 0:
+                    break;//no option selected
                 default:
+                    System.out.println("Not a valid menu option.");
+                    pause();
                     break;
             }
         }
@@ -122,9 +128,9 @@ public class Main {
             readLine = br.readLine();
         } catch (IOException ioe) {
             System.out.println("Invalid Input!");
-        } catch (NumberFormatException ex) {
-            System.out.println("Not a valid number: " + readLine);
+            pause();
         }
+
 
         ResultSet result;
         try {
@@ -156,8 +162,10 @@ public class Main {
             readLine = br.readLine();
         } catch (IOException ioe) {
             System.out.println("Invalid Input!");
+            pause();
         } catch (NumberFormatException ex) {
             System.out.println("Not a valid number: " + readLine);
+            pause();
         }
 
         ResultSet result;
@@ -225,6 +233,8 @@ public class Main {
                         id = Integer.parseInt(readLine);
                         break;
                     case 2:
+                        firstName = "";
+                        lastName = "";
                         while (firstName.isEmpty()) {
                             System.out.print("Enter First Name:");
                             firstName = br.readLine();
@@ -235,6 +245,7 @@ public class Main {
                         }
                         break;
                     case 3:
+                        lastName = "";
                         while (lastName.isEmpty()) {
                             System.out.print("Enter Name:");
                             lastName = br.readLine();
@@ -253,9 +264,22 @@ public class Main {
                     case 6:
                         int added = 0;
 
-                        //TODO check that first and last name exisit and DOB is in proper format
+                        if (firstName.isEmpty() && lastName.isEmpty()) {
+                            System.out.println("Star must have a name.");
+                            pause();
+                            break;
+                        }
+                        if (!firstName.isEmpty() && lastName.isEmpty()) {
+                            System.out.println("Improperly formatted single name.\n"
+                                    + "A single name must be put in the last name field.");
+                            pause();
+                            break;
+                        }
+
 
                         added = addStar(id, firstName, lastName, dob, imageURL);
+
+
                         if (added != 0) {
                             System.out.println("______________________________________\n"
                                     + firstName + " " + lastName + " successfully added\n"
@@ -270,16 +294,19 @@ public class Main {
                         }
                         return;
                     case 0:
-                        return;
+                        return;//Exit menu
                     default:
+                        System.out.println("Not a valid menu option.");
+                        pause();
                         break;
                 }
 
             } catch (IOException ioe) {
                 System.out.println("Invalid Input!");
+                pause();
             } catch (NumberFormatException ex) {
                 System.out.println("Not a valid number: " + readLine);
-//            } catch (MySQLIntegrityConstraintViolationException e){}
+                pause();
             }
 
 
@@ -357,6 +384,8 @@ public class Main {
                         id = Integer.parseInt(readLine);
                         break;
                     case 2:
+                        firstName = "";
+                        lastName = "";
                         while (firstName.isEmpty()) {
                             System.out.print("Enter First Name:");
                             firstName = br.readLine();
@@ -367,6 +396,7 @@ public class Main {
                         }
                         break;
                     case 3:
+                        lastName = "";
                         while (lastName.isEmpty()) {
                             System.out.print("Enter Name:");
                             lastName = br.readLine();
@@ -393,13 +423,37 @@ public class Main {
                     case 8:
                         int added = 0;
 
-                        //TODO validate all fields
-                        //TODO check cc_id against cc database and validate name
-                        //Vendor Error Code:  1452; i think means the cc_id is not in table:creditcards
-                        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
-                        // http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html
+                        if (firstName.isEmpty() && lastName.isEmpty()) {
+                            System.out.println("Customer must have a name.");
+                            pause();
+                            break;
+                        }
+                        if (!firstName.isEmpty() && lastName.isEmpty()) {
+                            System.out.println("Improperly formatted single name.\n"
+                                    + "A single name must be put in the last name field.");
+                            pause();
+                            break;
+                        }
+                        if (address.isEmpty()) {
+                            System.out.println("Customer must have an address.");
+                            pause();
+                            break;
+                        }
+                        if (email.isEmpty()) {
+                            System.out.println("Customer must have an e-mail address.");
+                            pause();
+                            break;
+                        }
+                        if (password.isEmpty()) {
+                            System.out.println("Customer must have a password.");
+                            pause();
+                            break;
+                        }
+
 
                         added = addCustomer(id, firstName, lastName, cc_id, address, email, password);
+
+
                         if (added != 0) {
                             System.out.println("______________________________________\n"
                                     + firstName + " " + lastName + " successfully added\n"
@@ -414,16 +468,17 @@ public class Main {
                         }
                         return;
                     case 0:
-                        return;
+                        return;//Exit menu
                     default:
+                        System.out.println("Not a valid menu option.");
+                        pause();
                         break;
                 }
 
-            } catch (IOException ioe) {
-                System.out.println("Invalid Input!");
             } catch (NumberFormatException ex) {
                 System.out.println("Not a valid number: " + readLine);
-//            } catch (MySQLIntegrityConstraintViolationException e){}
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
             }
 
 
@@ -437,8 +492,8 @@ public class Main {
             int retID = update.executeUpdate("INSERT INTO customers VALUES("
                     + id + ", '"
                     + firstName + "', '"
-                    + lastName + "', '"
-                    + cc_id + "', '"
+                    + lastName + "', "
+                    + cc_id + ", '"
                     + address + "','"
                     + email + "','"
                     + password + "');");
@@ -512,11 +567,12 @@ public class Main {
         // print table's contents, field by field
         int count = 0;
         while (result.next()) {
+            count++;
             System.out.println("ID = " + result.getInt(1));
             System.out.println("Name = " + result.getString(2) + " " + result.getString(3));
             System.out.println("DOB = " + result.getString(4));
             System.out.println("photoURL = " + result.getString(5));
-            if (++count % 3 == 0) {
+            if (count % 3 == 0) {
                 System.out.println("______________________________________");
                 pause();
                 System.out.println("______________________________________\n");
@@ -524,20 +580,40 @@ public class Main {
                 System.out.println();
             }
         }
+        if (count == 0) {
+            System.out.println("**** No results found ****\n");
+        }
     }
 
     private static void printSQLError(SQLException ex) {
         /*In cases where the requested tasks cannot be accomplished, print out
-         a clear, crisp error message–do not just pass along some Java exception! */
+        a clear, crisp error message–do not just pass along some Java exception! */
         //TODO add clean mySQL error messages
         // List of error codes:
         // http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html
         // http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
         // http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html
-        System.out.println("----SQLException----");
-        System.out.println("SQLState:  " + ex.getSQLState());
-        System.out.println("Message:  " + ex.getMessage());
-        System.out.println("Vendor Error Code:  " + ex.getErrorCode());
+
+        SQLException sqlError = ex;
+        while (sqlError != null) {
+
+            if (sqlError.getClass() == com.mysql.jdbc.MysqlDataTruncation.class) {
+                //Improperly formatted input
+                System.out.println("Invalid Date Format For Date Of Birth.");
+            } else if (sqlError.getClass() == com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException.class) {
+                //Foreign key, The credit card number, has failed.
+                System.out.println("Invalid Credit Card Number.");
+            } else {
+                System.out.println("----SQLException----");
+                System.out.println("SQLState:  " + sqlError.getSQLState());
+                System.out.println("Vendor Error Code:  " + sqlError.getErrorCode());
+                System.out.println("Message:  " + sqlError.getMessage());
+                System.out.println("String:  " + sqlError.toString());
+            }
+            sqlError = sqlError.getNextException();
+
+        }
+
     }
 
     private static void pause() {
