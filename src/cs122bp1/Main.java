@@ -45,24 +45,63 @@ public class Main {
 
     }
 
-    // TODO support for when login fails (database not present, incorrect username/password)
     private static void login() throws Exception {
+        //TODO exit w/o logging in
         System.out.println("\nPlease log in.\n");
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
         String username = null;
         String password = null;
+        String server = "localhost";
 
-        System.out.print("Username: ");
-        username = br.readLine();
-        System.out.print("Password: ");
-        password = br.readLine();
+        String readLine = "";
+        boolean loginScreen = true;
+
+        while (loginScreen) {
+            int menuOpt = -1;
+            System.out.print("\n\n"
+                    + "Server: " + server + "\n\n"
+                    + "1) Change server\n"
+                    + "2) Login\n"
+                    + "0) Exit\n"
+                    + ":");
+            try {
+                readLine = br.readLine();
+                menuOpt = Integer.valueOf(readLine);
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
+                pause();
+            } catch (NumberFormatException ex) {
+                System.out.println("Not a valid number: " + readLine);
+                pause();
+            }
+
+            switch (menuOpt) {
+                case 0:
+                    exit = true;
+                    return;
+                case 1:
+                    System.out.print("\nServer: ");
+                    server = br.readLine();
+                    break;
+                case 2:
+                    System.out.print("\nUsername: ");
+                    username = br.readLine();
+                    System.out.print("\nPassword: ");
+                    password = br.readLine();
+                    loginScreen = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
 
         try {
             // Connect to the test database
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/moviedb", username, password);
-
-
+            connection = DriverManager.getConnection("jdbc:mysql://" + server + ":3306/moviedb", username, password);
             isLoggedIn = true;
             System.out.println("\n\nWelcome, " + username + ".");
         } catch (SQLException ex) {
@@ -154,7 +193,6 @@ public class Main {
 
     private static void exit() {
         try {
-            // TODO clean up i.e. close buffer streams and connections
             connection.close();
         } catch (SQLException ex) {
             printSQLError(ex);
@@ -258,7 +296,7 @@ public class Main {
         Integer starID = 0;
 
         while (starID == 0) {
-        System.out.print("\n\n\nEnter star ID: ");
+            System.out.print("\n\n\nEnter star ID: ");
             try {
                 readLine = br.readLine();
                 starID = Integer.valueOf(readLine);
@@ -609,9 +647,19 @@ public class Main {
 
         try {
             //TODO check unique customer ID
-
+            //SELECT * FROM customers c WHERE id =
             Statement select = connection.createStatement();
-            ResultSet result = select.executeQuery("SELECT * FROM creditcards c "
+            ResultSet result = select.executeQuery("SELECT * FROM customers c "
+                    + "WHERE id = " + cc_id + ";");
+            if (result.next()) {
+                System.out.println("\n\nInvalid customer ID number.\n"
+                        + "Already in use.");
+                return false;
+            }
+
+
+            select = connection.createStatement();
+            result = select.executeQuery("SELECT * FROM creditcards c "
                     + "WHERE id = '" + cc_id + "';");
             if (!result.next()) {
                 System.out.println("\n\nInvalid credit card number.");
@@ -861,11 +909,11 @@ public class Main {
             } else if (sqlError.getClass() == com.mysql.jdbc.exceptions.jdbc4.CommunicationsException.class) {
                 // No response
                 // com.mysql.jdbc.exceptions.jdbc4.CommunicationsException
-                System.out.println("\nCould not contact mySQL server at localhost.");
-            } else if (sqlError.getErrorCode() == 1142){
+                System.out.println("\nCould not contact mySQL server");
+            } else if (sqlError.getErrorCode() == 1142) {
                 // (mySQL Error 1142) 	ER_TABLEACCESS_DENIED_ERROR
                 System.out.println("\nUser does not have required permissions.\n");
-            }else {
+            } else {
                 System.out.println("----SQLException----");
                 System.out.println("SQLState:  " + sqlError.getSQLState());
                 System.out.println("Vendor Error Code:  " + sqlError.getErrorCode());
