@@ -661,11 +661,10 @@ public class Main {
         }
 
         try {
-            //TODO check unique customer ID
             //SELECT * FROM customers c WHERE id =
             Statement select = connection.createStatement();
             ResultSet result = select.executeQuery("SELECT * FROM customers c "
-                    + "WHERE id = " + cc_id + ";");
+                    + "WHERE id = " + id + ";");
             if (result.next()) {
                 System.out.println("\n\nInvalid customer ID number.\n"
                         + "Already in use.");
