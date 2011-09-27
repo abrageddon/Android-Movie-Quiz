@@ -35,7 +35,7 @@ public class Main {
         		login();
         }
     }
-// LOG IN/OUT {{{1
+// LOG IN/OUT {{{
     private static void login() throws Exception {
         System.out.println("\nPlease log in.\n");
 
@@ -70,8 +70,8 @@ public class Main {
             printSQLError(ex);
         }
     }
-// }}}1
-// MAIN MENU {{{1
+// }}}
+// MAIN MENU {{{
     private static void mainMenu() {
         while (true) {
             System.out.print("\n\n\n\n=== Menu ===\n"
@@ -145,8 +145,8 @@ public class Main {
             }
         }
     }
-// }}}1    
-// SETUP/CLEANUP {{{1
+// }}}    
+// SETUP/CLEANUP {{{
     private static void setup()
     {
         exit = false;
@@ -167,8 +167,8 @@ public class Main {
         }
         System.out.println("Goodbye.");
     }
-// }}}1
-// STAR {{{1
+// }}}
+// STAR {{{
     //=== Search Stars
     /*Print out (to the screen) the movies featuring a given star.
     All movie attributes should appear, labeled and neatly arranged;
@@ -456,8 +456,8 @@ public class Main {
         return 0;
     }
 
-// }}}1
-// CUSTOMER {{{1
+// }}}
+// CUSTOMER {{{
     //=== Add Customer
     /*Insert a customer into the database. Do not allow insertion of a customer
     if his credit card does not exist in the credit card table. The credit
@@ -742,7 +742,7 @@ public class Main {
         }
         return retID;
     }
-// }}}1
+// }}}
 
     //=== Get Metadata
     /*Provide the metadata of the database; in particular, print out the name
@@ -802,7 +802,7 @@ public class Main {
             char queryType = query.trim().toLowerCase().charAt(0);
             
             if (queryType == 's') {			// SELECT
-            	System.out.println("SELECT command executed.");
+            	System.out.prinsln("SELECT command executed.");
             } else if (queryType == 'u') {	// UPDATE
             } else if (queryType == 'i') {	// INSERT
             } else if (queryType == 'd') {	// DELETE
@@ -901,14 +901,12 @@ public class Main {
                 System.out.println("String:  " + sqlError.toString());
             }
             sqlError = sqlError.getNextException();
-
         }
-
     }
 
     private static void pause() {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Press Enter to continue:");
+        System.out.print("Press Enter to continue.");
         try {
             int ch = stdin.read();
         } catch (IOException ex) {
