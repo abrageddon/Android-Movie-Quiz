@@ -84,9 +84,7 @@ public class Main {
                     addCustomerMenu();
                     break;
                 case 5:
-                    //TODO deleteCustomerMenu();
                     deleteCustomerMenu();
-                    pause();
                     break;
                 case 6:
                     getMetadata();
@@ -116,12 +114,39 @@ public class Main {
     First name and/or last name means that a star should be queried by
     both a) first name AND last name b) first name or last name. */
     private static void searchStarNames() {
-        //TODO add search for first or last name exclusive?
+
+        int searchBy = 0; //0 = any; 1 = first name; 2 = last name
+        boolean notSelected = true;
+        String readLine = "";
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        while (notSelected) {
+
+            System.out.print("\n\n\nSearch By:\n"
+                    + "0) All Names\n"
+                    + "1) First Name\n"
+                    + "2) Last Name\n"
+                    + "______________________________________\n"
+                    + ":");
+
+            try {
+                searchBy = Integer.valueOf(br.readLine());
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
+                pause();
+            } catch (NumberFormatException ex) {
+                System.out.println("Not a valid number: " + readLine);
+                pause();
+            }
+
+            if (searchBy >= 0 && searchBy <= 2) {
+                notSelected = false;
+            }
+        }
 
         System.out.print("\n\n\nEnter search term: ");
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String readLine = null;
+        readLine = null;
 
         try {
             readLine = br.readLine();
@@ -133,8 +158,13 @@ public class Main {
 
         ResultSet result;
         try {
-
-            result = queryStarNames(readLine);
+            if (searchBy == 0) {
+                result = queryStarNames(readLine);
+            } else if (searchBy == 1) {
+                result = queryStarFirstName(readLine);
+            } else {
+                result = queryStarLastName(readLine);
+            }
             System.out.println("\nThe results of the query\n");
             printStars(result);
 
@@ -147,6 +177,20 @@ public class Main {
         //Search by name, returns if found in first or last name inclusive
         Statement select = connection.createStatement();
         ResultSet result = select.executeQuery("Select * from stars WHERE (first_name = '" + readLine + "' OR last_name = '" + readLine + "' )");
+        return result;
+    }
+
+    private static ResultSet queryStarFirstName(String readLine) throws SQLException {
+        //Search by name, returns if found in first or last name inclusive
+        Statement select = connection.createStatement();
+        ResultSet result = select.executeQuery("Select * from stars WHERE (first_name = '" + readLine + "')");
+        return result;
+    }
+
+    private static ResultSet queryStarLastName(String readLine) throws SQLException {
+        //Search by name, returns if found in first or last name inclusive
+        Statement select = connection.createStatement();
+        ResultSet result = select.executeQuery("Select * from stars WHERE (last_name = '" + readLine + "' )");
         return result;
     }
 
@@ -421,7 +465,6 @@ public class Main {
                         firstName = "";
                         break;
                     case 4:
-                        //TODO must be number
                         System.out.print("Enter Credit Card Number:");
                         cc_id = br.readLine();
                         break;
@@ -549,8 +592,89 @@ public class Main {
     //=== Delete Customer
     /*Delete a customer from the database. */
     private static void deleteCustomerMenu() {
-        //TODO Delete a customer from the database. 
-        System.out.println("=== Not yet implemented ===");
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String readLine = null;
+        Integer customerID = 0;
+
+        while (customerID == 0) {
+            System.out.print("\n\n\nEnter customer ID: ");
+            try {
+                readLine = br.readLine();
+                customerID = Integer.valueOf(readLine);
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
+                pause();
+            } catch (NumberFormatException ex) {
+                System.out.println("Not a valid number: " + readLine);
+                pause();
+            }
+        }
+
+        ResultSet result;
+        boolean resultsFound = false;
+
+        try {
+            result = queryCustomerID(customerID);
+            System.out.println("\nThe results of the query\n");
+            resultsFound = printCustomers(result);
+
+        } catch (SQLException ex) {
+            printSQLError(ex);
+        }
+
+        if (resultsFound) {
+            int deleted = 0;
+            System.out.print("Are you sure you want to delete this customer?\n"
+                    + "(y/N):");
+            try {
+                readLine = br.readLine();
+                if ((!readLine.isEmpty())
+                        && (readLine.substring(0, 1).equals("Y")
+                        || readLine.substring(0, 1).equals("y"))) {//check for y/Y
+
+                    deleted = deleteCustomerID(customerID);// Attempt to delete
+
+                    if (deleted != 0) {
+                        System.out.println("______________________________________\n"
+                                + customerID + " successfully deleted\n"
+                                + "______________________________________");
+                        pause();
+                        return;
+                    }
+                }
+
+                System.out.println("\n\n"
+                        + customerID + " NOT deleted\n"
+                        + "______________________________________");
+                pause();
+
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
+                pause();
+            }
+        } else {
+            pause();
+        }
+    }
+
+    private static ResultSet queryCustomerID(int id) throws SQLException {
+        Statement select = connection.createStatement();
+        ResultSet result = select.executeQuery("Select * from customers WHERE (id = " + id + " )");
+        return result;
+    }
+
+    private static int deleteCustomerID(int id) {
+        int retID = 0;
+        try {
+            Statement update = connection.createStatement();
+            retID = update.executeUpdate("DELETE FROM customers WHERE id = " + id);
+            return retID;
+        } catch (SQLException ex) {
+            printSQLError(ex);
+            pause();
+        }
+        return retID;
     }
 
     //=== Get Metadata
@@ -601,7 +725,7 @@ public class Main {
     records have been successfully changed.*/
     private static void openQueryMenu() {
         //TODO Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command.
-        System.out.println("=== Not yet implemented ===");
+        System.out.println("\n=== Not yet implemented ===");
     }
 
     //=== Extra Functions
@@ -610,9 +734,9 @@ public class Main {
         int count = 0;
         while (result.next()) {
             count++;
-            System.out.println("ID = " + result.getInt(1));
-            System.out.println("Name = " + result.getString(2) + " " + result.getString(3));
-            System.out.println("DOB = " + result.getString(4));
+            System.out.println("ID       = " + result.getInt(1));
+            System.out.println("Name     = " + result.getString(2) + " " + result.getString(3));
+            System.out.println("DOB      = " + result.getString(4));
             System.out.println("photoURL = " + result.getString(5));
             if (count % 3 == 0) {
                 System.out.println("______________________________________");
@@ -625,6 +749,30 @@ public class Main {
         if (count == 0) {
             System.out.println("**** No results found ****\n");
         }
+    }
+
+    private static boolean printCustomers(ResultSet result) throws SQLException {
+        int count = 0;
+        while (result.next()) {
+            count++;
+            System.out.println("ID      = " + result.getInt(1));
+            System.out.println("Name    = " + result.getString(2) + " " + result.getString(3));
+            System.out.println("CC      = " + result.getString(4));
+            System.out.println("Address = " + result.getString(5));
+            System.out.println("E-mail  = " + result.getString(6));
+            if (count % 3 == 0) {
+                System.out.println("______________________________________");
+                pause();
+                System.out.println("______________________________________\n");
+            } else {
+                System.out.println();
+            }
+        }
+        if (count == 0) {
+            System.out.println("**** No results found ****\n");
+            return false;
+        }
+        return true;
     }
 
     private static void printSQLError(SQLException ex) {
