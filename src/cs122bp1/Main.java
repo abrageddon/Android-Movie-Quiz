@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.sql.*;                              // Enable SQL processing
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Formatter;
 
 public class Main {
 
@@ -38,6 +39,33 @@ public class Main {
         exit();
     }
 
+// SETUP/CLEANUP {{{
+    private static void setup()
+    {
+        testmode = true;
+        exit = false;
+        isLoggedIn = false;
+        try {
+            // Incorporate mySQL driver
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+        } catch (Exception e) {
+            // TODO find out what exception this throws and how to deal with it
+        }
+    }
+    
+    private static void exit() {
+    	exit = true;
+        try {
+            if (testmode)
+                connection.rollback();
+            else
+                connection.close();
+        } catch (SQLException e) {
+            printSQLError(e);
+        }
+        System.out.println("Goodbye.");
+    }
+// }}}
 // LOG IN/OUT {{{1
     private static void login() throws Exception {
         System.out.println("\nPlease log in.\n");
@@ -115,34 +143,12 @@ public class Main {
         }
     }
 // }}}
-// SETUP/CLEANUP {{{
-    private static void setup()
-    {
-        testmode = true;
-        exit = false;
-        isLoggedIn = false;
-        try {
-            // Incorporate mySQL driver
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-        } catch (Exception e) {
-            // TODO find out what exception this throws and how to deal with it
-        }
-    }
-    
-    private static void exit() {
-    	exit = true;
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            printSQLError(e);
-        }
-        System.out.println("Goodbye.");
-    }
-// }}}
 // MAIN MENU {{{
     private static void mainMenu() {
         while (true) {
-            System.out.print("\n\n\n\n=== Menu =============================\n"
+            if (testmode)
+                System.out.println("TEST MODE TEST MODE TEST MODE TEST MODE ");
+            System.out.print("=== Menu =============================\n"
                     + "1) Search stars by name\n"
                     + "2) Search stars by ID\n"
                     + "3) Add star to database\n"
@@ -858,24 +864,52 @@ public class Main {
         String query;
 		try {
             query = br.readLine();
-            Statement command = connection.createStatement();
+            Statement command = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
             ResultSet result = null;
+            ResultSetMetaData metadata = null;
             char queryType = query.trim().toLowerCase().charAt(0);
             
             System.out.println("========================================");
-            System.out.println("Results for '" + query + "'");
+            System.out.println("Results for << " + query + " >>");
             System.out.println("----------------------------------------");
 
             if (queryType == 's') {			// SELECT
                 result = command.executeQuery(query);
+                metadata = result.getMetaData();
                 int count = 0;
-                while (result.next()) {
-                    count++;
-                }
-                if (count == 0)
+                int colCount = metadata.getColumnCount();
+                String format = "";
+
+                if (result.next()) {
+
+                    // print colmun names
+                    for (int i = 1; i <= colCount; i++)
+                    {
+                        format = "|%-" + metadata.getPrecision(i) + "s";
+                        System.out.printf(format, metadata.getColumnName(i));
+                        format = "";
+                    }
+                    System.out.print("|\n");
+                    
+                    // reset the cursor
+                    result.beforeFirst();
+
+                    // for each record found, print data
+                    while (result.next()) {
+                        count++;                
+                        for (int i = 1; i <= colCount; i++)
+                        {
+                            format = "|%-" + metadata.getColumnDisplaySize(i) + "s";
+                            System.out.printf(format, result.getString(i));
+                            format = "";
+                        }
+                        System.out.print("|\n");
+                    }
+
+                    System.out.println("**** " + count + " records found ****");
+                } else
                     System.out.println("**** No results found ****");
-                else
-                    System.out.println(count);
+
             } else if (queryType == 'u') {	// UPDATE
             } else if (queryType == 'i') {	// INSERT
                 int count = 0;
@@ -884,7 +918,9 @@ public class Main {
                 }
                 System.out.println(count);
             } else if (queryType == 'd') {	// DELETE
+                System.out.println("Executing delete...");
                 System.out.println(command.executeUpdate(query));
+                System.out.println("Delete executed.");
             }
         } catch (SQLException e) {
         	printSQLError(e);
