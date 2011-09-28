@@ -1,20 +1,21 @@
+// CS122B, 2011 Fall
+// Group 10: Steven Neisius, Arielle Paek
 
 package cs122bp1;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.*;                              // Enable SQL processing
+import java.sql.*;
 
-/**
- *
- * @author tonkpils
- */
 public class Main {
 
     static Connection connection;
     static boolean isLoggedIn;
     static boolean exit;
+
+    // when test mode enabled, not actual changes are made to the database
+    static boolean testmode;
 
     public static void main(String[] args) throws Exception {
 
@@ -34,6 +35,8 @@ public class Main {
         	else
         		login();
         }
+        
+        exit();
     }
 
 // LOG IN/OUT {{{1
@@ -92,6 +95,8 @@ public class Main {
         try {
             // Connect to the test database
             connection = DriverManager.getConnection("jdbc:mysql://" + server + ":3306/moviedb", username, password);
+            if (testmode)
+                connection.setAutoCommit(false);
             isLoggedIn = true;
             System.out.println("\n\nWelcome, " + username + ".");
         } catch (SQLException ex) {
@@ -103,16 +108,43 @@ public class Main {
     	isLoggedIn = false;
     	System.out.println("You are now logged out.");
         try {
-            connection.close();
+            if (testmode)
+                connection.rollback();
+            else
+                connection.close();
         } catch (SQLException ex) {
             printSQLError(ex);
         }
     }
 // }}}
+// SETUP/CLEANUP {{{
+    private static void setup()
+    {
+        testmode = true;
+        exit = false;
+        isLoggedIn = false;
+        try {
+            // Incorporate mySQL driver
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+        } catch (Exception e) {
+            // TODO find out what exception this throws and how to deal with it
+        }
+    }
+    
+    private static void exit() {
+    	exit = true;
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            printSQLError(e);
+        }
+        System.out.println("Goodbye.");
+    }
+// }}}
 // MAIN MENU {{{
     private static void mainMenu() {
         while (true) {
-            System.out.print("\n\n\n\n=== Menu ===\n"
+            System.out.print("\n\n\n\n=== Menu =============================\n"
                     + "1) Search stars by name\n"
                     + "2) Search stars by ID\n"
                     + "3) Add star to database\n"
@@ -172,7 +204,7 @@ public class Main {
                     logout();
                     return;
                 case 0:
-                    exit();
+                    exit = true;
                     return;
                 case -1:
                     continue;
@@ -184,28 +216,6 @@ public class Main {
         }
     }
 // }}}    
-// SETUP/CLEANUP {{{
-    private static void setup()
-    {
-        exit = false;
-        isLoggedIn = false;
-        // Incorporate mySQL driver
-        try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-        } catch (Exception e) {
-        }
-    }
-    
-    private static void exit() {
-    	exit = true;
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            printSQLError(e);
-        }
-        System.out.println("Goodbye.");
-    }
-// }}}
 // STAR {{{
     //=== Search Stars
     /*Print out (to the screen) the movies featuring a given star.
@@ -831,8 +841,7 @@ public class Main {
         }
     }
 // }}}
-// SQL Query {{{
-    //=== SQL Query
+// SQL QUERY {{{
     /* Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command. The system
     should take the corresponding action, and return and display the valid
     results. For a SELECT query, display the answers. For the other types
@@ -840,21 +849,38 @@ public class Main {
     of the query. For instance, for an UPDATE query, show the user how many
     records have been successfully changed.*/
     private static void openQueryMenu() {
-        //TODO Enter a valid SELECT/UPDATE/INSERT/DELETE SQL command.
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Enter SQL Query: ");
         String query;
 		try {
             query = br.readLine();
             Statement command = connection.createStatement();
-            ResultSet result = command.executeQuery(query);
+            ResultSet result = null;
             char queryType = query.trim().toLowerCase().charAt(0);
             
+            System.out.println("========================================");
+            System.out.println("Results for '" + query + "'");
+            System.out.println("----------------------------------------");
+
             if (queryType == 's') {			// SELECT
-            	System.out.println("SELECT command executed.");
+                result = command.executeQuery(query);
+                int count = 0;
+                while (result.next()) {
+                    count++;
+                }
+                if (count == 0)
+                    System.out.println("**** No results found ****");
+                else
+                    System.out.println(count);
             } else if (queryType == 'u') {	// UPDATE
             } else if (queryType == 'i') {	// INSERT
+                int count = 0;
+                while (result.next()) {
+                    count++;
+                }
+                System.out.println(count);
             } else if (queryType == 'd') {	// DELETE
+                System.out.println(command.executeUpdate(query));
             }
         } catch (SQLException e) {
         	printSQLError(e);
