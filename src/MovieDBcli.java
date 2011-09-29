@@ -1,4 +1,3 @@
-package cs122bp1;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,9 +5,10 @@ import java.io.InputStreamReader;
 import java.sql.*;                              // Enable SQL processing
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-//import java.util.Formatter;
 
-public class Main {
+public class MovieDBcli {
+    //Steven Neisius
+    //Arielle Paek
 
     static Connection connection;
     static boolean isLoggedIn;
@@ -40,7 +40,7 @@ public class Main {
 
 // SETUP/CLEANUP {{{
     private static void setup() {
-        testmode = true;
+        testmode = false;
         exit = false;
         isLoggedIn = false;
         try {
@@ -48,7 +48,14 @@ public class Main {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
         } catch (Exception e) {
             // TODO find out what exception this throws and how to deal with it
-            System.out.println("com.mysql.jdbc.Driver FAILED!");
+            System.out.println("\n"
+                    + "***********************************\n"
+                    + "***********************************\n"
+                    + "com.mysql.jdbc.Driver FAILED!\n"
+                    + "***********************************\n"
+                    + "***********************************\n");
+            System.out.println(e);
+            pause();
         }
     }
 
@@ -207,7 +214,6 @@ public class Main {
                     pause();
                     break;
                 case 7:
-                    //TODO openQueryMenu();
                     openQueryMenu();
                     pause();
                     break;
@@ -240,12 +246,14 @@ public class Main {
         int searchBy = -1; //0 = any; 1 = first name; 2 = last name
         boolean notSelected = true;
         String readLine = "";
+        String firstName = "";
+        String lastName = "";
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         while (notSelected) {
 
             System.out.print("\n\n\nSearch By:\n"
-                    + "0) All Names\n"
+                    + "0) Both Names\n"
                     + "1) First Name\n"
                     + "2) Last Name\n"
                     + "______________________________________\n"
@@ -268,26 +276,43 @@ public class Main {
             }
         }
 
-        System.out.print("\n\n\nEnter search term: ");
+        if (searchBy == 0 || searchBy == 1) {
+            System.out.print("\n\n\nEnter First Name: ");
+            firstName = "";
 
-        readLine = null;
+            try {
+                firstName = br.readLine();
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
+                pause();
+            }
+        }
 
-        try {
-            readLine = br.readLine();
-        } catch (IOException ioe) {
-            System.out.println("Invalid Input!");
-            pause();
+        if (searchBy == 0 || searchBy == 2) {
+            System.out.print("\n\n\nEnter Last Name: ");
+            lastName = "";
+
+            try {
+                lastName = br.readLine();
+            } catch (IOException ioe) {
+                System.out.println("Invalid Input!");
+                pause();
+            }
         }
 
 
         ResultSet result;
         try {
-            if (searchBy == 0) {
-                result = queryStarNames(readLine);
-            } else if (searchBy == 1) {
-                result = queryStarFirstName(readLine);
+            if (searchBy == 1) {
+                result = queryStarFirstName(firstName);
+            } else if (searchBy == 2) {
+                result = queryStarLastName(lastName);
+            } else if (firstName.isEmpty()) {
+                result = queryStarLastName(lastName);
+            } else if (lastName.isEmpty()) {
+                result = queryStarFirstName(firstName);
             } else {
-                result = queryStarLastName(readLine);
+                result = queryStarNames(firstName, lastName);
             }
             System.out.println("\nThe results of the query\n");
             printStars(result);
@@ -297,10 +322,10 @@ public class Main {
         }
     }
 
-    private static ResultSet queryStarNames(String readLine) throws SQLException {
+    private static ResultSet queryStarNames(String firstName, String lastName) throws SQLException {
         //Search by name, returns if found in first or last name inclusive
         Statement select = connection.createStatement();
-        ResultSet result = select.executeQuery("Select * from stars WHERE (first_name = '" + readLine + "' OR last_name = '" + readLine + "' )");
+        ResultSet result = select.executeQuery("Select * from stars WHERE (first_name = '" + firstName + "' AND last_name = '" + lastName + "' )");
         return result;
     }
 
@@ -874,11 +899,11 @@ public class Main {
         try {
             query = br.readLine();
             Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
-            
+
             System.out.println("========================================");
             System.out.println("Results for << " + query + " >>");
             System.out.println("----------------------------------------");
-            
+
             // execute() returns true if query returns a result set
             if (statement.execute(query)) {
                 ResultSet result = statement.getResultSet();
@@ -999,6 +1024,8 @@ public class Main {
             } else if (sqlError.getSQLState().equals("28000")) {
                 // (SQLState 28000) java.sql.SQLException: Access denied for user -- Invalid password
                 System.out.println("\n" + sqlError.getMessage());
+            } else if (sqlError.getClass() == com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException.class) {
+                System.out.println(sqlError.getMessage());
             } else if (sqlError.getClass() == com.mysql.jdbc.exceptions.jdbc4.CommunicationsException.class) {
                 // No response
                 // com.mysql.jdbc.exceptions.jdbc4.CommunicationsException

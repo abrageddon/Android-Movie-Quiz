@@ -1,0 +1,7 @@
+mysql -u root -p
+
+  create database moviedb;
+
+mysql -u root -p -D moviedb < createtable.sql 
+
+mysql -u root -p -D moviedb < data.sql 
