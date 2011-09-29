@@ -7,21 +7,18 @@ By Steven Neisius and Arielle Paek, Group 10
 Setting up the database
 -----------------------
 
-    $ cd /dir/containing/sql/files
+    $ cd to/dir/containing/sql/files
     $ mysql -u root -p
     mysql> create database moviedb;
     mysql> source createtable_10.sql
     mysql> source data_10.sql
 
-Compile
--------
+Compile and Run
+---------------
 
-    javac Main.java
-
-Running
--------
-
-    java -classpath "./cs122bp1/*:." cs122bp1.Main
+    $ cd to/dir/containing/java/source/files
+    $ javac Main.java
+    $ java -classpath "./cs122bp1/*:." cs122bp1.Main
 
 List of error codes
 -------------------
