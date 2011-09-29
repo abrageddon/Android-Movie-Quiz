@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.sql.*;                              // Enable SQL processing
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Formatter;
+//import java.util.Formatter;
 
 public class Main {
 
@@ -873,18 +873,16 @@ public class Main {
         String query;
         try {
             query = br.readLine();
-            Statement command = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
-            ResultSet result = null;
-            ResultSetMetaData metadata = null;
-            char queryType = query.trim().toLowerCase().charAt(0);
-
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
+            
             System.out.println("========================================");
             System.out.println("Results for << " + query + " >>");
             System.out.println("----------------------------------------");
-
-            if (queryType == 's') {			// SELECT
-                result = command.executeQuery(query);
-                metadata = result.getMetaData();
+            
+            // execute() returns true if query returns a result set
+            if (statement.execute(query)) {
+                ResultSet result = statement.getResultSet();
+                ResultSetMetaData metadata = result.getMetaData();
                 int count = 0;
                 int colCount = metadata.getColumnCount();
                 String format = "";
@@ -918,17 +916,8 @@ public class Main {
                     System.out.println("**** No results found ****");
                 }
 
-            } else if (queryType == 'u') {	// UPDATE
-            } else if (queryType == 'i') {	// INSERT
-                int count = 0;
-                while (result.next()) {
-                    count++;
-                }
-                System.out.println(count);
-            } else if (queryType == 'd') {	// DELETE
-                System.out.println("Executing delete...");
-                System.out.println(command.executeUpdate(query));
-                System.out.println("Delete executed.");
+            } else {
+                System.out.println("**** " + statement.getUpdateCount() + " record(s) affected ****");
             }
         } catch (SQLException e) {
             printSQLError(e);
@@ -1005,7 +994,8 @@ public class Main {
             } else if (sqlError.getClass() == com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException.class) {
                 //Foreign key, e.g. the credit card number, has failed.
                 // triggers for star ID conflicts too
-                System.out.println("SQL Error -- Conflict with consistency.");
+                System.out.println(sqlError.getMessage());
+                System.out.println("SQL Error -- Conflict with Integrity Constraint.");
             } else if (sqlError.getSQLState().equals("28000")) {
                 // (SQLState 28000) java.sql.SQLException: Access denied for user -- Invalid password
                 System.out.println("\n" + sqlError.getMessage());
