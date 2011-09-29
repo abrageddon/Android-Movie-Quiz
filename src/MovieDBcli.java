@@ -13,7 +13,8 @@ public class MovieDBcli {
     static Connection connection;
     static boolean isLoggedIn;
     static boolean exit;
-    // when test mode enabled, not actual changes are made to the database
+
+    // when test mode enabled, actual changes are not made to the database
     static boolean testmode;
 
     public static void main(String[] args) throws Exception {
@@ -942,8 +943,11 @@ public class MovieDBcli {
                 }
 
             } else {
+                // for update/insert/delete query
                 System.out.println("**** " + statement.getUpdateCount() + " record(s) affected ****");
             }
+
+            statement.close();
         } catch (SQLException e) {
             printSQLError(e);
         } catch (IOException e) {
