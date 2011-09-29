@@ -13,12 +13,22 @@ Setting up the database
     mysql> source createtable_10.sql
     mysql> source data_10.sql
 
+Compile
+-------
+
+    javac Main.java
+
+Running
+-------
+
+    java -classpath "./cs122bp1/*:." cs122bp1.Main
+
 List of error codes
 -------------------
 
 MySQL
 
-- [SQL States]("http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html")
+- [SQL Error States]("http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html")
 - [Server-side errors]("http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html")
 - [Client-side errors]("http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html")
 
