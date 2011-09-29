@@ -13,7 +13,6 @@ public class Main {
     static Connection connection;
     static boolean isLoggedIn;
     static boolean exit;
-
     // when test mode enabled, not actual changes are made to the database
     static boolean testmode;
 
@@ -35,13 +34,12 @@ public class Main {
                 login();
             }
         }
-        
+
         exit();
     }
 
 // SETUP/CLEANUP {{{
-    private static void setup()
-    {
+    private static void setup() {
         testmode = true;
         exit = false;
         isLoggedIn = false;
@@ -50,16 +48,20 @@ public class Main {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
         } catch (Exception e) {
             // TODO find out what exception this throws and how to deal with it
+            System.out.println("com.mysql.jdbc.Driver FAILED!");
         }
     }
-    
+
     private static void exit() {
-    	exit = true;
+        exit = true;
         try {
-            if (testmode)
-                connection.rollback();
-            else
-                connection.close();
+            if (connection != null) {
+                if (testmode) {
+                    connection.rollback();
+                } else {
+                    connection.close();
+                }
+            }
         } catch (SQLException e) {
             printSQLError(e);
         }
@@ -67,6 +69,7 @@ public class Main {
     }
 // }}}
 // LOG IN/OUT {{{1
+
     private static void login() throws Exception {
         System.out.println("\nPlease log in.\n");
 
@@ -121,8 +124,9 @@ public class Main {
         try {
             // Connect to the test database
             connection = DriverManager.getConnection("jdbc:mysql://" + server + ":3306/moviedb", username, password);
-            if (testmode)
+            if (testmode) {
                 connection.setAutoCommit(false);
+            }
             isLoggedIn = true;
             System.out.println("\n\nWelcome, " + username + ".");
         } catch (SQLException ex) {
@@ -134,20 +138,23 @@ public class Main {
         isLoggedIn = false;
         System.out.println("You are now logged out.");
         try {
-            if (testmode)
+            if (testmode) {
                 connection.rollback();
-            else
+            } else {
                 connection.close();
+            }
         } catch (SQLException ex) {
             printSQLError(ex);
         }
     }
 // }}}
 // MAIN MENU {{{
+
     private static void mainMenu() {
         while (true) {
-            if (testmode)
+            if (testmode) {
                 System.out.println("TEST MODE TEST MODE TEST MODE TEST MODE ");
+            }
             System.out.print("=== Menu =============================\n"
                     + "1) Search stars by name\n"
                     + "2) Search stars by ID\n"
@@ -418,7 +425,7 @@ public class Main {
                         do {
                             System.out.print("Enter Date of Birth (YYYY/MM/DD):");
                             dob = br.readLine();
-                        }while (!isValidDate(dob));
+                        } while (!isValidDate(dob));
                         break;
                     case 5:
                         System.out.print("Enter Image URL:");
@@ -641,7 +648,7 @@ public class Main {
                 System.out.println("Invalid Input!");
             }
         }
-        
+
     }
 
     private static boolean canAddCustomer(int id, String firstName, String lastName, String cc_id, String address, String email, String password) {
@@ -815,6 +822,7 @@ public class Main {
     //=== Get Metadata
     /*Provide the metadata of the database; in particular, print out the name
     of each table and, for each table, each attribute and its type. */
+
     private static void getMetadata() {
         boolean step = false;
         try {
@@ -858,17 +866,18 @@ public class Main {
     of queries, give enough information about the status of the execution
     of the query. For instance, for an UPDATE query, show the user how many
     records have been successfully changed.*/
+
     private static void openQueryMenu() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Enter SQL Query: ");
         String query;
-		try {
+        try {
             query = br.readLine();
             Statement command = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
             ResultSet result = null;
             ResultSetMetaData metadata = null;
             char queryType = query.trim().toLowerCase().charAt(0);
-            
+
             System.out.println("========================================");
             System.out.println("Results for << " + query + " >>");
             System.out.println("----------------------------------------");
@@ -883,22 +892,20 @@ public class Main {
                 if (result.next()) {
 
                     // print colmun names
-                    for (int i = 1; i <= colCount; i++)
-                    {
+                    for (int i = 1; i <= colCount; i++) {
                         format = "|%-" + metadata.getPrecision(i) + "s";
                         System.out.printf(format, metadata.getColumnName(i));
                         format = "";
                     }
                     System.out.print("|\n");
-                    
+
                     // reset the cursor
                     result.beforeFirst();
 
                     // for each record found, print data
                     while (result.next()) {
-                        count++;                
-                        for (int i = 1; i <= colCount; i++)
-                        {
+                        count++;
+                        for (int i = 1; i <= colCount; i++) {
                             format = "|%-" + metadata.getColumnDisplaySize(i) + "s";
                             System.out.printf(format, result.getString(i));
                             format = "";
@@ -907,8 +914,9 @@ public class Main {
                     }
 
                     System.out.println("**** " + count + " records found ****");
-                } else
+                } else {
                     System.out.println("**** No results found ****");
+                }
 
             } else if (queryType == 'u') {	// UPDATE
             } else if (queryType == 'i') {	// INSERT
@@ -923,14 +931,14 @@ public class Main {
                 System.out.println("Delete executed.");
             }
         } catch (SQLException e) {
-        	printSQLError(e);
+            printSQLError(e);
         } catch (IOException e) {
-        	
         }
     }
 // }}}
 // HELPERS {{{
     //=== Extra Functions
+
     private static void printStars(ResultSet result) throws SQLException {
         // print table's contents, field by field
         int count = 0;
