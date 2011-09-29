@@ -864,18 +864,16 @@ public class Main {
         String query;
 		try {
             query = br.readLine();
-            Statement command = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
-            ResultSet result = null;
-            ResultSetMetaData metadata = null;
-            char queryType = query.trim().toLowerCase().charAt(0);
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
             
             System.out.println("========================================");
             System.out.println("Results for << " + query + " >>");
             System.out.println("----------------------------------------");
-
-            if (queryType == 's') {			// SELECT
-                result = command.executeQuery(query);
-                metadata = result.getMetaData();
+            
+            // execute() returns true if query returns a result set
+            if (statement.execute(query)) {
+                ResultSet result = statement.getResultSet();
+                ResultSetMetaData metadata = result.getMetaData();
                 int count = 0;
                 int colCount = metadata.getColumnCount();
                 String format = "";
@@ -910,17 +908,8 @@ public class Main {
                 } else
                     System.out.println("**** No results found ****");
 
-            } else if (queryType == 'u') {	// UPDATE
-            } else if (queryType == 'i') {	// INSERT
-                int count = 0;
-                while (result.next()) {
-                    count++;
-                }
-                System.out.println(count);
-            } else if (queryType == 'd') {	// DELETE
-                System.out.println("Executing delete...");
-                System.out.println(command.executeUpdate(query));
-                System.out.println("Delete executed.");
+            } else {
+                System.out.println("**** " + statement.getUpdateCount() + " record(s) affected ****");
             }
         } catch (SQLException e) {
         	printSQLError(e);
