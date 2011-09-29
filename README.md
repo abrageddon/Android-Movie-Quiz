@@ -2,7 +2,7 @@ Project 1
 =========
 
 For CS 122B, 2011 Fall  
-By Steven Neisius and Arielle Paek
+By Steven Neisius and Arielle Paek, Group 10
 
 Setting up the database
 -----------------------
