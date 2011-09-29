@@ -1,7 +1,26 @@
-List of error codes:
-http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html
-http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
-http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html
+Setting up the database
+-----------------------
 
-http://www.java2s.com/Open-Source/Java-Document/Database-JDBC-Connection-Pool/mysql/com.mysql.jdbc.exceptions.jdbc4.htm
-http://www.java2s.com/Open-Source/Java-Document/Database-JDBC-Connection-Pool/mysql/com.mysql.jdbc.htm
+> $ mysql -u root -p
+
+Enter root password
+
+> mysql> create database moviedb;
+
+> mysql> source createtable_10.sql
+
+> mysql> source data_10.sql
+
+List of error codes
+-------------------
+
+MySQL
+
+- [SQL States]("http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-error-sqlstates.html")
+- [Server-side errors]("http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html")
+- [Client-side errors]("http://dev.mysql.com/doc/refman/5.5/en/error-messages-client.html")
+
+JDBC
+
+- [JDBC Exceptions]("http://www.java2s.com/Open-Source/Java-Document/Database-JDBC-Connection-Pool/mysql/com.mysql.jdbc.exceptions.jdbc4.htm")
+- [JDBC Docs]("http://www.java2s.com/Open-Source/Java-Document/Database-JDBC-Connection-Pool/mysql/com.mysql.jdbc.htm")
