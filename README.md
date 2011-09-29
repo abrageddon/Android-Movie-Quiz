@@ -1,15 +1,17 @@
+Project 1
+=========
+
+For CS 122B, 2011 Fall  
+By Steven Neisius and Arielle Paek
+
 Setting up the database
 -----------------------
 
-> $ mysql -u root -p
-
-Enter root password
-
-> mysql> create database moviedb;
-
-> mysql> source createtable_10.sql
-
-> mysql> source data_10.sql
+    $ cd /dir/containing/sql/files
+    $ mysql -u root -p
+    mysql> create database moviedb;
+    mysql> source createtable_10.sql
+    mysql> source data_10.sql
 
 List of error codes
 -------------------
